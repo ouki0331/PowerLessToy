@@ -1,0 +1,237 @@
+<Window x:Class="NotifyPositionChanger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Notify Position Changer"
+        Width="420" Height="700"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{StaticResource PrimaryBrush}"
+        WindowStyle="None"
+        AllowsTransparency="True">
+
+    <Border CornerRadius="12" Background="{StaticResource PrimaryBrush}"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- タイトルバー -->
+            <Border Grid.Row="0" Background="{StaticResource SecondaryBrush}"
+                    CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                        <TextBlock Text="🔔" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="Notify Position Changer" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,8,0">
+                        <!-- 最小化 (トレイへ) -->
+                        <Button Content="─" Width="32" Height="28" FontSize="12"
+                                Style="{StaticResource ModernButton}" Click="MinimizeToTray_Click"
+                                ToolTip="トレイに最小化" Background="Transparent" />
+                        <!-- 閉じる (トレイへ) -->
+                        <Button Content="✕" Width="32" Height="28" FontSize="12"
+                                Style="{StaticResource ModernButton}" Click="CloseToTray_Click"
+                                ToolTip="トレイに格納" Background="Transparent" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- メインコンテンツ -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20,16,20,20">
+
+                    <!-- ステータス表示 -->
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="14,10" Margin="0,0,0,18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="監視ステータス" Style="{StaticResource SectionLabel}" />
+                                <TextBlock x:Name="StatusText" Text="停止中" FontSize="15" FontWeight="Bold"
+                                           Foreground="{StaticResource SubTextBrush}" />
+                            </StackPanel>
+                            <Button x:Name="ToggleButton" Grid.Column="1"
+                                    Content="▶ 開始" Style="{StaticResource ModernButton}"
+                                    Width="90" Click="ToggleMonitoring_Click" />
+                        </Grid>
+                    </Border>
+
+                    <!-- 位置プリセット -->
+                    <TextBlock Text="表示位置" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="8" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <RadioButton x:Name="RbTopLeft" Content="左上" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="0" Grid.Column="0" Checked="Position_Changed" />
+                            <RadioButton x:Name="RbTopCenter" Content="上中央" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="0" Grid.Column="2" Checked="Position_Changed" />
+                            <RadioButton x:Name="RbTopRight" Content="右上" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="0" Grid.Column="4" IsChecked="True" Checked="Position_Changed" />
+
+                            <RadioButton x:Name="RbBottomLeft" Content="左下" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="2" Grid.Column="0" Checked="Position_Changed" />
+                            <RadioButton x:Name="RbBottomCenter" Content="下中央" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="2" Grid.Column="2" Checked="Position_Changed" />
+                            <RadioButton x:Name="RbBottomRight" Content="右下" GroupName="Position"
+                                         Style="{StaticResource PositionToggle}"
+                                         Grid.Row="2" Grid.Column="4" Checked="Position_Changed" />
+                        </Grid>
+                    </Border>
+
+                    <!-- カスタム座標 -->
+                    <TextBlock Text="カスタム座標 (任意)" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <StackPanel>
+                            <CheckBox x:Name="ChkCustomPosition" Content="カスタム座標を使用"
+                                      Foreground="{StaticResource TextBrush}" FontSize="12" Margin="0,0,0,10"
+                                      Checked="CustomPosition_Changed" Unchecked="CustomPosition_Changed" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="X:" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"
+                                           FontSize="13" Margin="0,0,8,0" Grid.Column="0" />
+                                <TextBox x:Name="TxtCustomX" Text="0" Style="{StaticResource ModernTextBox}"
+                                         Grid.Column="1" IsEnabled="{Binding IsChecked, ElementName=ChkCustomPosition}" />
+                                <TextBlock Text="Y:" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"
+                                           FontSize="13" Margin="0,0,8,0" Grid.Column="3" />
+                                <TextBox x:Name="TxtCustomY" Text="0" Style="{StaticResource ModernTextBox}"
+                                         Grid.Column="4" IsEnabled="{Binding IsChecked, ElementName=ChkCustomPosition}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 通知サイズ設定 -->
+                    <TextBlock Text="通知ポップアップのサイズ" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <StackPanel>
+                            <CheckBox x:Name="ChkResizeNotify" Content="サイズを変更する"
+                                      Foreground="{StaticResource TextBrush}" FontSize="12" Margin="0,0,0,10"
+                                      Checked="ResizeOption_Changed" Unchecked="ResizeOption_Changed" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="幅:" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"
+                                           FontSize="13" Margin="0,0,8,0" Grid.Column="0" />
+                                <TextBox x:Name="TxtWidth" Text="364" Style="{StaticResource ModernTextBox}"
+                                         Grid.Column="1" IsEnabled="{Binding IsChecked, ElementName=ChkResizeNotify}" />
+                                <TextBlock Text="高さ:" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"
+                                           FontSize="13" Margin="0,0,8,0" Grid.Column="3" />
+                                <TextBox x:Name="TxtHeight" Text="120" Style="{StaticResource ModernTextBox}"
+                                         Grid.Column="4" IsEnabled="{Binding IsChecked, ElementName=ChkResizeNotify}" />
+                            </Grid>
+                            <TextBlock Text="※ デフォルト: 幅 364px / 高さ 120px" FontSize="10"
+                                       Foreground="{StaticResource SubTextBrush}" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 監視間隔 -->
+                    <TextBlock Text="監視間隔 (ms)" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="SliderInterval" Minimum="20" Maximum="500" Value="50"
+                                    TickFrequency="10" IsSnapToTickEnabled="True"
+                                    VerticalAlignment="Center" Grid.Column="0"
+                                    ValueChanged="Interval_Changed" />
+                            <TextBlock x:Name="IntervalLabel" Text="50ms" Width="50" TextAlignment="Right"
+                                       Foreground="{StaticResource TextBrush}" FontSize="13" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Grid.Column="1" Margin="10,0,0,0" />
+                        </Grid>
+                    </Border>
+
+                    <!-- ═══ Google Chat 連携 ═══ -->
+                    <TextBlock Text="Google Chat 連携" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <StackPanel>
+                            <CheckBox x:Name="ChkGoogleChat" Content="Google Chat 通知をポップアップ表示"
+                                      Foreground="{StaticResource TextBrush}" FontSize="12" Margin="0,0,0,10"
+                                      Checked="GoogleChat_Changed" Unchecked="GoogleChat_Changed" />
+
+                            <!-- 認証ステータス -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="認証状態" FontSize="10" Foreground="{StaticResource SubTextBrush}" />
+                                    <TextBlock x:Name="ChatAuthStatus" Text="未認証" FontSize="12"
+                                               Foreground="{StaticResource SubTextBrush}" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <Button x:Name="BtnChatAuth" Grid.Column="1"
+                                        Content="認証" Style="{StaticResource ModernButton}"
+                                        Width="70" Click="ChatAuth_Click" />
+                            </Grid>
+
+                            <!-- credentials.json 配置 -->
+                            <Button x:Name="BtnSelectCredentials" Content="📁 credentials.json を選択"
+                                    Style="{StaticResource ModernButton}" HorizontalAlignment="Stretch"
+                                    Click="SelectCredentials_Click" Margin="0,0,0,6"
+                                    Background="{StaticResource AccentBrush}" />
+
+                            <TextBlock x:Name="CredentialsPathText" Text="" FontSize="9"
+                                       Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" />
+
+                            <!-- ログアウト -->
+                            <Button x:Name="BtnChatLogout" Content="ログアウト"
+                                    Style="{StaticResource ModernButton}" HorizontalAlignment="Left"
+                                    Click="ChatLogout_Click" Margin="0,8,0,0"
+                                    Background="Transparent" FontSize="11" Visibility="Collapsed" />
+
+                            <TextBlock Text="※ Google Cloud Console で OAuth クライアントID を作成し、&#xA;   credentials.json をダウンロードしてください" 
+                                       FontSize="9" Foreground="{StaticResource SubTextBrush}" 
+                                       TextWrapping="Wrap" Margin="0,8,0,0" />
+
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ログ -->
+                    <TextBlock Text="ログ" Style="{StaticResource SectionLabel}" />
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="8" Height="90">
+                        <TextBox x:Name="LogBox" IsReadOnly="True" TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Background="Transparent" Foreground="{StaticResource SubTextBrush}"
+                                 BorderThickness="0" FontSize="11" FontFamily="Consolas" />
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>
