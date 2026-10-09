@@ -1,0 +1,14 @@
+{
+  "ID": "C78713C8DC3F4DD09967B9141F3E04EB",
+  "ActionKeyword": "notify",
+  "IsGlobal": false,
+  "Name": "NotifyPosition Changer",
+  "Author": "ouki0331",
+  "Version": "1.0.0",
+  "Language": "csharp",
+  "Website": "https://github.com/ouki0331/PowerLessToy",
+  "ExecuteFileName": "Community.PowerToys.Run.Plugin.NotifyPosition.dll",
+  "IcoPathDark": "Images\\notifyposition.dark.png",
+  "IcoPathLight": "Images\\notifyposition.light.png",
+  "DynamicLoading": false
+}
