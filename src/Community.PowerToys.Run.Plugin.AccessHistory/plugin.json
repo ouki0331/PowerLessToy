@@ -1,0 +1,13 @@
+{
+  "ID": "A9E3C5B1D2F44C78B9A0E1D2F3C4B5A6",
+  "ActionKeyword": "his",
+  "IsGlobal": false,
+  "Name": "Access History",
+  "Author": "ouki",
+  "Version": "1.0.0",
+  "Language": "csharp",
+  "Website": "https://github.com/ouki0331/PowerLessToy",
+  "ExecuteFileName": "Community.PowerToys.Run.Plugin.AccessHistory.dll",
+  "IcoPathDark": "Images\\accesshistory.dark.png",
+  "IcoPathLight": "Images\\accesshistory.light.png"
+}

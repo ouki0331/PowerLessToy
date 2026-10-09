@@ -1,0 +1,160 @@
+<Window x:Class="PowerLessToy.AccessHistory.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PowerLessToy Access History" Height="600" Width="800"
+        Background="#1E1E1E" Foreground="#E0E0E0"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <!-- Style for the Search Box -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <!-- Style for TextBlocks -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+        </Style>
+        
+        <!-- Style for the ListBox -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <!-- DataTemplate for Items -->
+        <DataTemplate x:Key="AccessItemTemplate">
+            <Border Background="Transparent" BorderThickness="0" Padding="8,4" Margin="0,2" Cursor="Hand" Name="ItemBorder">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- Main Text (Folder/File Name) -->
+                    <TextBlock Text="{Binding FileName}" FontWeight="Medium" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    <!-- Sub Text (Full Path) -->
+                    <TextBlock Text="{Binding Path}" Grid.Row="1" FontSize="11" Foreground="#888888" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                </Grid>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <EventSetter Event="MouseLeftButtonDown" Handler="ItemBorder_MouseLeftButtonDown"/>
+                    </Style>
+                </Border.Style>
+                <Border.ContextMenu>
+                    <ContextMenu Background="#2D2D2D" Foreground="#E0E0E0" BorderBrush="#404040">
+                        <MenuItem Header="打开位置" Click="MenuOpen_Click"/>
+                        <MenuItem Header="属性 (Windows 原生)" Click="MenuProperties_Click"/>
+                        <Separator Background="#404040" Margin="0,2"/>
+                        <MenuItem Header="不再显示于首页推荐" Click="MenuHide_Click" Foreground="#FF5555"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+            </Border>
+            <DataTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="ItemBorder" Property="Background" Value="#333333"/>
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Search Bar Area -->
+        <Border Grid.Row="0" Background="#252526" BorderBrush="#333333" BorderThickness="0,0,0,1" Padding="15">
+            <Grid>
+                <TextBox x:Name="SearchBox" TextChanged="SearchBox_TextChanged" 
+                         Tag="按 Ctrl+P 聚焦此处进行模糊搜索 (例如: '项目 报告')..." />
+                <TextBlock IsHitTestVisible="False" Text="按 Ctrl+P 聚焦此处进行模糊搜索 (例如: '项目 报告')..." 
+                           VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,0,0,0" Foreground="#666666">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Search Dropdown Overlay -->
+                <Popup x:Name="SearchPopup" PlacementTarget="{Binding ElementName=SearchBox}" 
+                       Placement="Bottom" IsOpen="False" StaysOpen="False" Width="{Binding ActualWidth, ElementName=SearchBox}">
+                    <Border Background="#2D2D2D" BorderBrush="#404040" BorderThickness="1" CornerRadius="4" Margin="0,4,0,0" MaxHeight="300">
+                        <ListBox x:Name="SearchResultsList" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="4"/>
+                    </Border>
+                </Popup>
+            </Grid>
+        </Border>
+
+        <!-- Three Columns Area -->
+        <Grid Grid.Row="1" Background="#1E1E1E">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Local Column -->
+            <Border Grid.Column="0" BorderBrush="#333333" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="#252526" Padding="10">
+                        <TextBlock Text="本机文件 (Local)" FontWeight="Bold"/>
+                    </Border>
+                    <ListBox x:Name="LocalList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
+                </Grid>
+            </Border>
+
+            <!-- SMB Column -->
+            <Border Grid.Column="1" BorderBrush="#333333" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="#252526" Padding="10">
+                        <TextBlock Text="网络共享 (SMB)" FontWeight="Bold"/>
+                    </Border>
+                    <ListBox x:Name="SmbList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
+                </Grid>
+            </Border>
+
+            <!-- WSL Column -->
+            <Border Grid.Column="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="#252526" Padding="10">
+                        <TextBlock Text="Linux 子系统 (WSL)" FontWeight="Bold"/>
+                    </Border>
+                    <ListBox x:Name="WslList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#007ACC" Padding="10,4">
+            <TextBlock x:Name="StatusText" Text="后台监听已开启 • 双击打开文件 • 右键调出菜单" Foreground="#FFFFFF" FontSize="11"/>
+        </Border>
+    </Grid>
+</Window>
