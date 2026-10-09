@@ -107,7 +107,7 @@ public class DatabaseManager
     {
         using var connection = new SqliteConnection(_connectionString);
         
-        // 分割搜索词，空格作为 OR
+        // 検索キーワードをスペースで分割し、OR条件とする
         var keywords = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (keywords.Length == 0) return new List<AccessRecord>();
 
@@ -128,7 +128,7 @@ public class DatabaseManager
             LIMIT @GlobalLimit";
 
         var parameters = new DynamicParameters();
-        parameters.Add("GlobalLimit", limitPerSource * 3); // 允许一定的冗余
+        parameters.Add("GlobalLimit", limitPerSource * 3); // ある程度の余裕を持たせる
         for (int i = 0; i < keywords.Length; i++)
         {
             parameters.Add($"K{i}", $"%{keywords[i]}%");
@@ -136,7 +136,7 @@ public class DatabaseManager
 
         var allResults = connection.Query<AccessRecord>(sql, parameters).ToList();
         
-        // 按照 SourceType 分组并限制条数
+        // SourceType ごとにグループ化し、件数を制限する
         var finalResults = new List<AccessRecord>();
         foreach (SourceType type in Enum.GetValues(typeof(SourceType)))
         {

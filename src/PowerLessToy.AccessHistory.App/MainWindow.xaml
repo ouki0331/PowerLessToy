@@ -50,10 +50,10 @@
                 </Border.Style>
                 <Border.ContextMenu>
                     <ContextMenu Background="#2D2D2D" Foreground="#E0E0E0" BorderBrush="#404040">
-                        <MenuItem Header="打开位置" Click="MenuOpen_Click"/>
-                        <MenuItem Header="属性 (Windows 原生)" Click="MenuProperties_Click"/>
+                        <MenuItem Header="ファイルの場所を開く" Click="MenuOpen_Click"/>
+                        <MenuItem Header="プロパティ (Windows 標準)" Click="MenuProperties_Click"/>
                         <Separator Background="#404040" Margin="0,2"/>
-                        <MenuItem Header="不再显示于首页推荐" Click="MenuHide_Click" Foreground="#FF5555"/>
+                        <MenuItem Header="ホームの推奨に表示しない" Click="MenuHide_Click" Foreground="#FF5555"/>
                     </ContextMenu>
                 </Border.ContextMenu>
             </Border>
@@ -76,8 +76,8 @@
         <Border Grid.Row="0" Background="#252526" BorderBrush="#333333" BorderThickness="0,0,0,1" Padding="15">
             <Grid>
                 <TextBox x:Name="SearchBox" TextChanged="SearchBox_TextChanged" 
-                         Tag="按 Ctrl+P 聚焦此处进行模糊搜索 (例如: '项目 报告')..." />
-                <TextBlock IsHitTestVisible="False" Text="按 Ctrl+P 聚焦此处进行模糊搜索 (例如: '项目 报告')..." 
+                         Tag="Ctrl+P を押してここをフォーカスし、あいまい検索を行います (例: 'プロジェクト レポート')..." />
+                <TextBlock IsHitTestVisible="False" Text="Ctrl+P を押してここをフォーカスし、あいまい検索を行います (例: 'プロジェクト レポート')..." 
                            VerticalAlignment="Center" HorizontalAlignment="Left" Margin="12,0,0,0" Foreground="#666666">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -117,7 +117,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Background="#252526" Padding="10">
-                        <TextBlock Text="本机文件 (Local)" FontWeight="Bold"/>
+                        <TextBlock Text="ローカルファイル (Local)" FontWeight="Bold"/>
                     </Border>
                     <ListBox x:Name="LocalList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
                 </Grid>
@@ -131,7 +131,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Background="#252526" Padding="10">
-                        <TextBlock Text="网络共享 (SMB)" FontWeight="Bold"/>
+                        <TextBlock Text="ネットワーク共有 (SMB)" FontWeight="Bold"/>
                     </Border>
                     <ListBox x:Name="SmbList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
                 </Grid>
@@ -145,7 +145,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Background="#252526" Padding="10">
-                        <TextBlock Text="Linux 子系统 (WSL)" FontWeight="Bold"/>
+                        <TextBlock Text="Linux サブシステム (WSL)" FontWeight="Bold"/>
                     </Border>
                     <ListBox x:Name="WslList" Grid.Row="1" ItemTemplate="{StaticResource AccessItemTemplate}" Padding="5"/>
                 </Grid>
@@ -154,7 +154,7 @@
         
         <!-- Status Bar -->
         <Border Grid.Row="2" Background="#007ACC" Padding="10,4">
-            <TextBlock x:Name="StatusText" Text="后台监听已开启 • 双击打开文件 • 右键调出菜单" Foreground="#FFFFFF" FontSize="11"/>
+            <TextBlock x:Name="StatusText" Text="バックグラウンド監視中 • ダブルクリックで開く • 右クリックでメニューを表示" Foreground="#FFFFFF" FontSize="11"/>
         </Border>
     </Grid>
 </Window>

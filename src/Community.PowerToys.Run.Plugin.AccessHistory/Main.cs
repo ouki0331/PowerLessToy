@@ -32,7 +32,7 @@ public class Main : IPlugin
         var results = new List<Result>();
         results.Add(new Result
         {
-            Title = "打开访问历史面板",
+            Title = "アクセス履歴パネルを開く",
             SubTitle = "Open the Access History UI",
             IcoPath = "Images\\accesshistory.dark.png",
             Action = e =>

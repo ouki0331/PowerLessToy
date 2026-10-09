@@ -12,7 +12,7 @@ public class AccessTracker
     private CancellationTokenSource? _cts;
     private FileSystemWatcher? _recentWatcher;
 
-    // 记录已经处理过的窗口句柄和路径，避免重复记录
+    // 処理済みのウィンドウハンドルとパスを記録し、重複記録を避ける
     private readonly Dictionary<long, string> _lastWindowPaths = new();
 
     public AccessTracker(DatabaseManager db)
@@ -78,7 +78,7 @@ public class AccessTracker
                             long hwnd = window.HWND;
                             currentWindowHwnds.Add(hwnd);
 
-                            // 只处理文件浏览器
+                            // ファイルエクスプローラーのみ処理
                             string name = window.Name;
                             if (name.Contains("Internet Explorer")) continue;
 
@@ -110,7 +110,7 @@ public class AccessTracker
                         catch { } // Ignore COM errors for individual windows
                     }
 
-                    // 清理已经关闭的窗口
+                    // 閉じたウィンドウのクリーンアップ
                     var keysToRemove = new List<long>();
                     foreach (var key in _lastWindowPaths.Keys)
                     {
