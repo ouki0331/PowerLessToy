@@ -49,86 +49,103 @@ public class AccessTracker
         {
             return SourceType.SMB;
         }
+        if (path.Length >= 2 && path[1] == ':')
+        {
+            try
+            {
+                var drive = new DriveInfo(path.Substring(0, 2));
+                if (drive.DriveType == DriveType.Network)
+                {
+                    return SourceType.SMB;
+                }
+            }
+            catch { }
+        }
         return SourceType.Local;
     }
 
     private void StartExplorerPolling(CancellationToken token)
     {
-        Task.Run(async () =>
+        var thread = new Thread(() =>
         {
-            Type? shellAppType = Type.GetTypeFromProgID("Shell.Application");
-            if (shellAppType == null) return;
-
             while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    dynamic shell = Activator.CreateInstance(shellAppType);
-                    dynamic windows = shell.Windows();
-
-                    var currentWindowHwnds = new HashSet<long>();
-
-                    for (int i = 0; i < windows.Count; i++)
+                    Type? shellAppType = Type.GetTypeFromProgID("Shell.Application");
+                    if (shellAppType != null)
                     {
-                        try
+                        dynamic shell = Activator.CreateInstance(shellAppType);
+                        dynamic windows = shell.Windows();
+                        int count = windows.Count;
+                        var currentWindowHwnds = new HashSet<long>();
+
+                        for (int i = 0; i < count; i++)
                         {
-                            var window = windows.Item(i);
-                            if (window == null) continue;
-
-                            long hwnd = window.HWND;
-                            currentWindowHwnds.Add(hwnd);
-
-                            // ファイルエクスプローラーのみ処理
-                            string name = window.Name;
-                            if (name.Contains("Internet Explorer")) continue;
-
-                            var document = window.Document;
-                            if (document != null)
+                            try
                             {
-                                var folder = document.Folder;
-                                if (folder != null)
-                                {
-                                    var self = folder.Self;
-                                    if (self != null)
-                                    {
-                                        string path = self.Path;
-                                        if (!string.IsNullOrEmpty(path) && path.Contains("\\"))
-                                        {
-                                            if (!_lastWindowPaths.TryGetValue(hwnd, out string? lastPath) || lastPath != path)
-                                            {
-                                                _lastWindowPaths[hwnd] = path;
-                                                string folderName = Path.GetFileName(path);
-                                                if (string.IsNullOrEmpty(folderName)) folderName = path;
+                                var window = windows.Item(i);
+                                if (window == null) continue;
 
-                                                _db.RecordAccess(path, folderName, DetermineSourceType(path));
+                                long hwnd = 0;
+                                try { hwnd = Convert.ToInt64(window.HWND); } catch { hwnd = i; }
+                                currentWindowHwnds.Add(hwnd);
+
+                                // ファイルエクスプローラーのみ処理
+                                string name = window.Name;
+                                if (name != null && name.Contains("Internet Explorer")) continue;
+
+                                var document = window.Document;
+                                if (document != null)
+                                {
+                                    var folder = document.Folder;
+                                    if (folder != null)
+                                    {
+                                        var self = folder.Self;
+                                        if (self != null)
+                                        {
+                                            string path = self.Path;
+                                            if (!string.IsNullOrEmpty(path) && (path.Contains("\\") || path.Contains("/")))
+                                            {
+                                                if (!_lastWindowPaths.TryGetValue(hwnd, out string? lastPath) || lastPath != path)
+                                                {
+                                                    _lastWindowPaths[hwnd] = path;
+                                                    string folderName = Path.GetFileName(path);
+                                                    if (string.IsNullOrEmpty(folderName)) folderName = path;
+
+                                                    _db.RecordAccess(path, folderName, DetermineSourceType(path));
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
+                            catch { } // Ignore COM errors for individual windows
                         }
-                        catch { } // Ignore COM errors for individual windows
-                    }
 
-                    // 閉じたウィンドウのクリーンアップ
-                    var keysToRemove = new List<long>();
-                    foreach (var key in _lastWindowPaths.Keys)
-                    {
-                        if (!currentWindowHwnds.Contains(key))
+                        // 閉じたウィンドウのクリーンアップ
+                        var keysToRemove = new List<long>();
+                        foreach (var key in _lastWindowPaths.Keys)
                         {
-                            keysToRemove.Add(key);
+                            if (!currentWindowHwnds.Contains(key))
+                            {
+                                keysToRemove.Add(key);
+                            }
                         }
-                    }
-                    foreach (var key in keysToRemove)
-                    {
-                        _lastWindowPaths.Remove(key);
+                        foreach (var key in keysToRemove)
+                        {
+                            _lastWindowPaths.Remove(key);
+                        }
                     }
                 }
                 catch { }
 
-                await Task.Delay(2000, token); // Poll every 2 seconds
+                Thread.Sleep(2000); // Poll every 2 seconds
             }
-        }, token);
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.IsBackground = true;
+        thread.Start();
     }
 
     private void StartRecentFilesWatcher()
