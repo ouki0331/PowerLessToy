@@ -14,4 +14,10 @@
     <PackageReference Include="Dapper" Version="2.1.28" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Images\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
