@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Community.PowerToys.Run.Plugin.NotifyPosition;
 
@@ -32,14 +34,13 @@ public class NotificationMover
     const int SM_CYSCREEN = 1;
 
     public PositionPreset Preset { get; set; } = PositionPreset.TopRight;
-    public bool ResizeEnabled { get; set; } = false;
-    public int NotifyWidth { get; set; } = 364;
-    public int NotifyHeight { get; set; } = 120;
-    public int IntervalMs { get; set; } = 50;
+    public int IntervalMs { get; set; } = 60;
 
-    private CancellationTokenSource _cts;
-    private Task _monitorTask;
+    private CancellationTokenSource? _cts;
+    private Task? _monitorTask;
     public bool IsMonitoring { get; private set; }
+
+    private readonly HashSet<IntPtr> _handledWindows = new();
 
     static readonly string[] NotificationClassNames = { "Windows.UI.Core.CoreWindow", "Windows.UI.Composition.DesktopWindowContentBridge" };
     static readonly string[] NotificationProcessNames = { "ShellExperienceHost", "explorer" };
@@ -63,13 +64,15 @@ public class NotificationMover
     {
         while (!token.IsCancellationRequested)
         {
-            try { ScanAndMoveNotifications(token); } catch { }
+            try { ScanAndInterceptNotifications(token); } catch { }
             try { Task.Delay(IntervalMs, token).Wait(token); } catch { break; }
         }
     }
 
-    void ScanAndMoveNotifications(CancellationToken token)
+    void ScanAndInterceptNotifications(CancellationToken token)
     {
+        var visibleHandles = new HashSet<IntPtr>();
+
         EnumWindows((hWnd, lParam) =>
         {
             if (token.IsCancellationRequested) return false;
@@ -84,10 +87,14 @@ public class NotificationMover
             if (!isClass) return true;
 
             GetWindowThreadProcessId(hWnd, out uint pid);
-            var proc = Process.GetProcessById((int)pid);
-            bool isProc = false;
-            foreach (var n in NotificationProcessNames) if (proc.ProcessName.Equals(n, StringComparison.OrdinalIgnoreCase)) { isProc = true; break; }
-            if (!isProc) return true;
+            try
+            {
+                var proc = Process.GetProcessById((int)pid);
+                bool isProc = false;
+                foreach (var n in NotificationProcessNames) if (proc.ProcessName.Equals(n, StringComparison.OrdinalIgnoreCase)) { isProc = true; break; }
+                if (!isProc) return true;
+            }
+            catch { return true; }
 
             GetWindowRect(hWnd, out RECT rect);
             int w = rect.Right - rect.Left;
@@ -97,57 +104,53 @@ public class NotificationMover
             int sh = GetSystemMetrics(SM_CYSCREEN);
             if (w > sw * 0.5 || h > sh * 0.5) return true;
             if (w < 50 || h < 30) return true;
+
             if (w >= 150 && w <= 600 && h >= 40 && h <= 500)
             {
-                MoveNotificationWindow(hWnd, w, h, rect);
+                visibleHandles.Add(hWnd);
+                InterceptNotification(hWnd);
             }
 
             return true;
         }, IntPtr.Zero);
 
-        TryFindAndMove("Windows.UI.Core.CoreWindow", "新しい通知");
-        TryFindAndMove("Windows.UI.Core.CoreWindow", "New notification");
+        // Cleanup dead handles
+        _handledWindows.RemoveWhere(h => !visibleHandles.Contains(h) && !IsWindowVisible(h));
     }
 
-    void TryFindAndMove(string className, string windowName)
+    void InterceptNotification(IntPtr hWnd)
     {
-        IntPtr hWnd = FindWindow(className, windowName);
-        if (hWnd != IntPtr.Zero && IsWindowVisible(hWnd))
+        lock (_handledWindows)
         {
-            GetWindowRect(hWnd, out RECT rect);
-            int w = rect.Right - rect.Left;
-            int h = rect.Bottom - rect.Top;
-            MoveNotificationWindow(hWnd, w, h, rect);
-        }
-    }
+            if (_handledWindows.Contains(hWnd))
+            {
+                // Keep pushed off-screen
+                SetWindowPos(hWnd, IntPtr.Zero, -9999, -9999, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+                return;
+            }
 
-    void MoveNotificationWindow(IntPtr hWnd, int origW, int origH, RECT currentRect)
-    {
-        int screenW = GetSystemMetrics(SM_CXSCREEN);
-        int screenH = GetSystemMetrics(SM_CYSCREEN);
-        int margin = 12;
-
-        int finalW = ResizeEnabled ? NotifyWidth : origW;
-        int finalH = ResizeEnabled ? NotifyHeight : origH;
-
-        int taskbar = 48;
-        int targetX, targetY;
-        switch (Preset)
-        {
-            case PositionPreset.TopLeft: targetX = margin; targetY = margin; break;
-            case PositionPreset.TopCenter: targetX = (screenW - finalW) / 2; targetY = margin; break;
-            case PositionPreset.TopRight: targetX = screenW - finalW - margin; targetY = margin; break;
-            case PositionPreset.BottomLeft: targetX = margin; targetY = screenH - finalH - margin - taskbar; break;
-            case PositionPreset.BottomCenter: targetX = (screenW - finalW) / 2; targetY = screenH - finalH - margin - taskbar; break;
-            case PositionPreset.BottomRight: targetX = screenW - finalW - margin; targetY = screenH - finalH - margin - taskbar; break;
-            default: targetX = screenW - finalW - margin; targetY = margin; break;
+            _handledWindows.Add(hWnd);
         }
 
-        if (currentRect.Left == targetX && currentRect.Top == targetY && origW == finalW && origH == finalH) return;
+        // 1. Move native toast off-screen immediately so user doesn't see the ugly default toast
+        SetWindowPos(hWnd, IntPtr.Zero, -9999, -9999, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
 
-        uint flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS;
-        if (!ResizeEnabled) flags |= SWP_NOSIZE;
-
-        SetWindowPos(hWnd, IntPtr.Zero, targetX, targetY, finalW, finalH, flags);
+        // 2. Read full content + action buttons from UIAutomation
+        Task.Run(() =>
+        {
+            var content = NotificationReader.ReadFromHandle(hWnd);
+            if (content != null && (!string.IsNullOrEmpty(content.Title) || !string.IsNullOrEmpty(content.Body)))
+            {
+                Application.Current?.Dispatcher?.BeginInvoke(() =>
+                {
+                    try
+                    {
+                        var customWin = new CustomToastWindow(content, Preset);
+                        customWin.Show();
+                    }
+                    catch { }
+                });
+            }
+        });
     }
 }

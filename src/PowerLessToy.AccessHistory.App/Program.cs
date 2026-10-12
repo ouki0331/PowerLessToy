@@ -8,6 +8,7 @@ namespace PowerLessToy.AccessHistory.App;
 public class Program
 {
     private static Mutex? _mutex;
+    private const string AppEventName = "PowerLessToy.AccessHistory.ShowEvent";
 
     [STAThread]
     public static void Main()
@@ -17,11 +18,15 @@ public class Program
 
         if (!createdNew)
         {
-            // App is already running. For simplicity, just exit. 
-            // In a real app we'd use NamedPipes to tell the existing instance to show its window.
-            // But since PowerToys will just launch this, we can let the user keep the window open, 
-            // or we can use Win32 API to find the window and bring it to front.
-            BringExistingWindowToFront();
+            try
+            {
+                using var ev = EventWaitHandle.OpenExisting(AppEventName);
+                ev.Set();
+            }
+            catch
+            {
+                BringExistingWindowToFront();
+            }
             return;
         }
 
@@ -31,6 +36,24 @@ public class Program
 
         var app = new Application();
         var window = new MainWindow(db);
+
+        var showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, AppEventName);
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            while (true)
+            {
+                showEvent.WaitOne();
+                app.Dispatcher.Invoke(() =>
+                {
+                    window.Show();
+                    window.WindowState = WindowState.Normal;
+                    window.Activate();
+                    window.Focus();
+                    window.SearchBox.Focus();
+                });
+            }
+        });
+
         app.Run(window);
     }
 

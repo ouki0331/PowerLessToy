@@ -15,6 +15,29 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _db = db;
+
+        Width = SystemParameters.PrimaryScreenWidth * 0.8;
+        Height = SystemParameters.PrimaryScreenHeight * 0.8;
+        Left = (SystemParameters.PrimaryScreenWidth - Width) / 2;
+        Top = (SystemParameters.PrimaryScreenHeight - Height) / 2;
+
+        Loaded += (s, e) =>
+        {
+            LoadMainLists();
+            SearchBox.Focus();
+        };
+
+        Activated += (s, e) =>
+        {
+            LoadMainLists();
+            SearchBox.Focus();
+        };
+
+        Deactivated += (s, e) =>
+        {
+            SearchPopup.IsOpen = false;
+            this.Hide();
+        };
         
         LoadMainLists();
     }
@@ -50,7 +73,15 @@ public partial class MainWindow : Window
         }
         else if (e.Key == Key.Escape)
         {
-            SearchPopup.IsOpen = false;
+            if (SearchPopup.IsOpen)
+            {
+                SearchPopup.IsOpen = false;
+            }
+            else
+            {
+                this.Hide();
+            }
+            e.Handled = true;
         }
     }
 
@@ -101,6 +132,7 @@ public partial class MainWindow : Window
         try
         {
             Process.Start(new ProcessStartInfo(record.Path) { UseShellExecute = true });
+            this.Hide();
         }
         catch { }
     }

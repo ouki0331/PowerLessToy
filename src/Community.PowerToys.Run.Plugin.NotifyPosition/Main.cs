@@ -20,12 +20,12 @@ public class Main : IPlugin, IDisposable
     /// <summary>
     /// Name of the plugin.
     /// </summary>
-    public string Name => "NotifyPosition";
+    public string Name => "NotifyPosition 2.0";
 
     /// <summary>
     /// Description of the plugin.
     /// </summary>
-    public string Description => "Moves Windows notifications to a specific corner of the screen.";
+    public string Description => "Customizes Windows notifications into modern card alerts with action proxying.";
 
     private PluginInitContext Context { get; set; }
     private string IconPath { get; set; }
@@ -52,10 +52,37 @@ public class Main : IPlugin, IDisposable
         {
             results.Add(new Result
             {
-                Title = "NotifyPosition Changer",
-                SubTitle = $"Current state: {(_mover.IsMonitoring ? "Running" : "Stopped")}, Position: {_mover.Preset}",
+                Title = "NotifyPosition 2.0",
+                SubTitle = $"Current state: {(_mover.IsMonitoring ? "Active" : "Stopped")}, Position: {_mover.Preset}. Type 'test' to preview.",
                 IcoPath = IconPath,
                 Action = _ => true
+            });
+            results.Add(new Result
+            {
+                Title = "テスト通知を表示 (Preview Approval Notification)",
+                SubTitle = "承認・却下ボタン付きのカスタム通知プレビューを表示します",
+                IcoPath = IconPath,
+                Action = _ =>
+                {
+                    ShowTestNotification();
+                    return true;
+                }
+            });
+            return results;
+        }
+
+        if (search.StartsWith("test"))
+        {
+            results.Add(new Result
+            {
+                Title = "テスト通知を表示 (Preview Approval Notification)",
+                SubTitle = "承認・却下ボタン付きのカスタム通知プレビューを表示します",
+                IcoPath = IconPath,
+                Action = _ =>
+                {
+                    ShowTestNotification();
+                    return true;
+                }
             });
             return results;
         }
@@ -98,6 +125,26 @@ public class Main : IPlugin, IDisposable
         }
 
         return results;
+    }
+
+    private void ShowTestNotification()
+    {
+        Application.Current?.Dispatcher?.BeginInvoke(() =>
+        {
+            var testNotification = new ParsedNotification
+            {
+                AppName = "稟議・ワークフロー",
+                Title = "有給休暇の申請 (開発部 田中 太郎)",
+                Body = "2026/10/16 (金) の休暇申請が届いています。内容を確認の上、承認または却下を選択してください。",
+                Buttons = new List<NotificationButtonInfo>
+                {
+                    new NotificationButtonInfo { Name = "同意する (Approve)" },
+                    new NotificationButtonInfo { Name = "却下する (Reject)" }
+                }
+            };
+            var win = new CustomToastWindow(testNotification, _mover.Preset);
+            win.Show();
+        });
     }
 
     public void Dispose()
