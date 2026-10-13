@@ -141,6 +141,7 @@ BenchmarkDotNet.Artifacts/
 *.key
 *.pem
 secrets.json
+id_vm*
 
 # SQLite / local DB
 *.db
