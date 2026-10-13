@@ -73,6 +73,11 @@ Write-Host "`n[5/5] プラグインディレクトリへファイルを配置し
 Copy-Item -Path "$tempPublishDir\*" -Destination $targetAccess -Recurse -Force
 $accessBinDir = Join-Path $accessPluginDir "bin\$Architecture\Release\net10.0-windows10.0.26100.0"
 Copy-Item -Path "$accessBinDir\*" -Destination $targetAccess -Recurse -Force
+$nativeArch = if ($Architecture -eq "ARM64") { "win-arm64" } else { "win-x64" }
+$sqliteNative = Join-Path $targetAccess "runtimes\$nativeArch\native\e_sqlite3.dll"
+if (Test-Path $sqliteNative) {
+    Copy-Item $sqliteNative -Destination $targetAccess -Force
+}
 
 # NotifyPosition の配置
 $notifyBinDir = Join-Path $notifyPluginDir "bin\$Architecture\Release\net10.0-windows10.0.26100.0"

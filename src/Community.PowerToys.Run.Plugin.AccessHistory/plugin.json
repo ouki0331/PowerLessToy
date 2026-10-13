@@ -8,6 +8,6 @@
   "Language": "csharp",
   "Website": "https://github.com/ouki0331/PowerLessToy",
   "ExecuteFileName": "Community.PowerToys.Run.Plugin.AccessHistory.dll",
-  "IcoPathDark": "Images\\accesshistory.dark.png",
-  "IcoPathLight": "Images\\accesshistory.light.png"
+  "IcoPathDark": "Images\\history.dark.png",
+  "IcoPathLight": "Images\\history.light.png"
 }
