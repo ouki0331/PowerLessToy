@@ -27,11 +27,11 @@ public class Main : IPlugin, IDisposable
     /// </summary>
     public string Description => "Customizes Windows notifications into modern card alerts with action proxying.";
 
-    private PluginInitContext Context { get; set; }
-    private string IconPath { get; set; }
+    private PluginInitContext Context { get; set; } = null!;
+    private string IconPath { get; set; } = string.Empty;
     private bool Disposed { get; set; }
 
-    private NotificationMover _mover;
+    private NotificationMover _mover = null!;
 
     public void Init(PluginInitContext context)
     {

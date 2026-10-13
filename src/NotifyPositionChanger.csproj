@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>$(PowerLessToyTargetFramework)</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>NotifyPositionChanger</RootNamespace>
     <AssemblyName>NotifyPositionChanger</AssemblyName>
     <Nullable>enable</Nullable>
+    <Platforms>x64;ARM64</Platforms>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

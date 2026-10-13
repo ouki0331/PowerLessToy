@@ -1,113 +1,135 @@
 # ==============================================================================
-# PowerLessToy 一括ビルド & デプロイスクリプト (PowerLessToy Installer / Deploy Script)
-# 対象: Windows 10 / 11 (x64 & ARM64) | .NET 10.0 対応
+# PowerLessToy build and deployment script
+# Primary target: Windows 11 x64 | Compatibility target: Windows 11 ARM64
 # ==============================================================================
 
 [CmdletBinding()]
 param (
-    [ValidateSet("ARM64", "x64")]
-    [string]$Architecture = $(if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "ARM64" } else { "x64" })
+    [ValidateSet("x64", "ARM64")]
+    [string]$Architecture = "x64"
 )
 
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host " PowerLessToy 自動ビルド & デプロイツール (.NET 10.0)" -ForegroundColor Cyan
-Write-Host " ターゲットアーキテクチャ: $Architecture" -ForegroundColor Yellow
-Write-Host "==========================================================" -ForegroundColor Cyan
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $srcDir = Join-Path $scriptDir "src"
-$pluginsDir = Join-Path $env:LOCALAPPDATA "PowerToys\RunPlugins"
-
-if (!(Test-Path $srcDir)) {
-    Write-Error "ソースコードフォルダが見つかりません: $srcDir"
-    exit 1
-}
-
-# 1. 出力先ディレクトリの準備
+$pluginsDir = Join-Path $env:LOCALAPPDATA "Microsoft\PowerToys\PowerToys Run\Plugins"
 $targetNotify = Join-Path $pluginsDir "NotifyPosition"
 $targetAccess = Join-Path $pluginsDir "AccessHistory"
-
-if (!(Test-Path $targetNotify)) { New-Item -ItemType Directory -Force -Path $targetNotify | Out-Null }
-if (!(Test-Path $targetAccess)) { New-Item -ItemType Directory -Force -Path $targetAccess | Out-Null }
-
-# 2. 実行中の PowerToys プロセスを一時停止
-Write-Host "`n[1/5] 実行中の PowerToys プロセスを終了しています..." -ForegroundColor Cyan
-Stop-Process -Name "PowerToys*", "PowerLessToy*" -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 1
-
-# 3. AccessHistory WPF アプリのビルド & パブリッシュ
-Write-Host "`n[2/5] AccessHistory.App をビルド中 (.NET 10.0, $Architecture)..." -ForegroundColor Cyan
-$accessAppDir = Join-Path $srcDir "PowerLessToy.AccessHistory.App"
-$tempPublishDir = Join-Path $env:TEMP "PowerLessToy_AccessHistory_Publish"
-if (Test-Path $tempPublishDir) { Remove-Item -Path $tempPublishDir -Recurse -Force }
-
+$targetFramework = "net10.0-windows10.0.22621.0"
 $rid = if ($Architecture -eq "ARM64") { "win-arm64" } else { "win-x64" }
-dotnet publish $accessAppDir -c Release -p:Platform=$Architecture -r $rid --no-self-contained -o $tempPublishDir
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "AccessHistory.App のビルドに失敗しました。"
-    exit 1
-}
+$tempPublishDir = Join-Path $env:TEMP "PowerLessToy_AccessHistory_Publish_$Architecture"
+$exitCode = 0
 
-# 4. AccessHistory プラグインのビルド
-Write-Host "`n[3/5] Community.PowerToys.Run.Plugin.AccessHistory をビルド中..." -ForegroundColor Cyan
-$accessPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.AccessHistory"
-dotnet build $accessPluginDir -c Release -p:Platform=$Architecture
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "AccessHistory プラグインのビルドに失敗しました。"
-    exit 1
-}
-
-# 5. NotifyPosition 2.0 プラグインのビルド
-Write-Host "`n[4/5] Community.PowerToys.Run.Plugin.NotifyPosition をビルド中..." -ForegroundColor Cyan
-$notifyPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.NotifyPosition"
-dotnet build $notifyPluginDir -c Release -p:Platform=$Architecture
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "NotifyPosition プラグインのビルドに失敗しました。"
-    exit 1
-}
-
-# 6. プラグインフォルダへ配置
-Write-Host "`n[5/5] プラグインディレクトリへファイルを配置しています..." -ForegroundColor Cyan
-
-# AccessHistory の配置
-Copy-Item -Path "$tempPublishDir\*" -Destination $targetAccess -Recurse -Force
-$accessBinDir = Join-Path $accessPluginDir "bin\$Architecture\Release\net10.0-windows10.0.26100.0"
-Copy-Item -Path "$accessBinDir\*" -Destination $targetAccess -Recurse -Force
-$nativeArch = if ($Architecture -eq "ARM64") { "win-arm64" } else { "win-x64" }
-$sqliteNative = Join-Path $targetAccess "runtimes\$nativeArch\native\e_sqlite3.dll"
-if (Test-Path $sqliteNative) {
-    Copy-Item $sqliteNative -Destination $targetAccess -Force
-}
-
-# NotifyPosition の配置
-$notifyBinDir = Join-Path $notifyPluginDir "bin\$Architecture\Release\net10.0-windows10.0.26100.0"
-Copy-Item -Path "$notifyBinDir\*" -Destination $targetNotify -Recurse -Force
-
-# デスクトップにショートカットを作成 (AccessHistory)
-try {
-    $wscript = New-Object -ComObject WScript.Shell
-    $shortcutPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "AccessHistory.lnk"
-    $shortcut = $wscript.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = Join-Path $targetAccess "PowerLessToy.AccessHistory.App.exe"
-    $iconPath = Join-Path $targetAccess "Images\history.dark.png"
-    if (Test-Path $iconPath) {
-        $shortcut.IconLocation = $iconPath
+function Find-PowerToysExecutable {
+    $running = Get-Process -Name "PowerToys" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($running) {
+        try {
+            if ($running.Path -and (Test-Path $running.Path)) { return $running.Path }
+        } catch { }
     }
-    $shortcut.Save()
-    Write-Host "デスクトップショートカットを作成しました: $shortcutPath" -ForegroundColor Green
-} catch {
-    Write-Warning "ショートカットの作成をスキップしました。"
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA "PowerToys\PowerToys.exe"),
+        (Join-Path $env:LOCALAPPDATA "Programs\PowerToys\PowerToys.exe"),
+        (Join-Path $env:ProgramFiles "PowerToys\PowerToys.exe")
+    )
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) { return $candidate }
+    }
+    return $null
 }
 
-# 7. PowerToys の再起動
-$ptExe = Join-Path $env:LOCALAPPDATA "PowerToys\PowerToys.exe"
-if (Test-Path $ptExe) {
-    Write-Host "`nPowerToys を再起動しています..." -ForegroundColor Green
-    Start-Process $ptExe
+function Start-PowerToysIfAvailable([string]$Executable) {
+    if ($Executable -and (Test-Path $Executable)) {
+        Write-Host "Starting PowerToys..." -ForegroundColor Green
+        Start-Process $Executable
+    } else {
+        Write-Warning "PowerToys.exe was not found. Start PowerToys manually after installation."
+    }
 }
+
+Write-Host "==========================================================" -ForegroundColor Cyan
+Write-Host " PowerLessToy build and deployment (.NET 10)" -ForegroundColor Cyan
+Write-Host " Primary platform: x64 | Selected platform: $Architecture" -ForegroundColor Yellow
+Write-Host "==========================================================" -ForegroundColor Cyan
+
+if (!(Test-Path $srcDir)) {
+    throw "Source directory not found: $srcDir"
+}
+
+$sdkVersion = (& dotnet --version).Trim()
+if ($LASTEXITCODE -ne 0 -or !$sdkVersion.StartsWith("10.")) {
+    throw ".NET 10 SDK is required. Detected SDK: $sdkVersion"
+}
+
+$powerToysExe = Find-PowerToysExecutable
+
+try {
+    New-Item -ItemType Directory -Force -Path $targetNotify, $targetAccess | Out-Null
+
+    Write-Host "`n[1/5] Stopping PowerToys..." -ForegroundColor Cyan
+    Stop-Process -Name "PowerToys*", "PowerLessToy*" -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+
+    Write-Host "`n[2/5] Publishing AccessHistory.App ($rid)..." -ForegroundColor Cyan
+    if (Test-Path $tempPublishDir) {
+        Remove-Item -Path $tempPublishDir -Recurse -Force
+    }
+    $accessAppDir = Join-Path $srcDir "PowerLessToy.AccessHistory.App"
+    & dotnet publish $accessAppDir -c Release -p:Platform=$Architecture -r $rid --no-self-contained -o $tempPublishDir
+    if ($LASTEXITCODE -ne 0) { throw "AccessHistory.App publish failed." }
+
+    Write-Host "`n[3/5] Building AccessHistory plugin..." -ForegroundColor Cyan
+    $accessPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.AccessHistory"
+    & dotnet build $accessPluginDir -c Release -p:Platform=$Architecture
+    if ($LASTEXITCODE -ne 0) { throw "AccessHistory plugin build failed." }
+
+    Write-Host "`n[4/5] Building NotifyPosition plugin..." -ForegroundColor Cyan
+    $notifyPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.NotifyPosition"
+    & dotnet build $notifyPluginDir -c Release -p:Platform=$Architecture
+    if ($LASTEXITCODE -ne 0) { throw "NotifyPosition plugin build failed." }
+
+    Write-Host "`n[5/5] Deploying plugin files..." -ForegroundColor Cyan
+    Copy-Item -Path "$tempPublishDir\*" -Destination $targetAccess -Recurse -Force
+
+    $accessBinDir = Join-Path $accessPluginDir "bin\$Architecture\Release\$targetFramework"
+    $notifyBinDir = Join-Path $notifyPluginDir "bin\$Architecture\Release\$targetFramework"
+    Copy-Item -Path "$accessBinDir\*" -Destination $targetAccess -Recurse -Force
+    Copy-Item -Path "$notifyBinDir\*" -Destination $targetNotify -Recurse -Force
+
+    $sqliteNative = Join-Path $targetAccess "runtimes\$rid\native\e_sqlite3.dll"
+    if (Test-Path $sqliteNative) {
+        Copy-Item $sqliteNative -Destination $targetAccess -Force
+    }
+
+    try {
+        $wscript = New-Object -ComObject WScript.Shell
+        $shortcutPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "AccessHistory.lnk"
+        $shortcut = $wscript.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = Join-Path $targetAccess "PowerLessToy.AccessHistory.App.exe"
+        $shortcut.WorkingDirectory = $targetAccess
+        $shortcut.Save()
+        Write-Host "Desktop shortcut created: $shortcutPath" -ForegroundColor Green
+    } catch {
+        Write-Warning "Desktop shortcut creation was skipped: $($_.Exception.Message)"
+    }
+} catch {
+    $exitCode = 1
+    Write-Error $_
+} finally {
+    Start-PowerToysIfAvailable $powerToysExe
+    if (Test-Path $tempPublishDir) {
+        Remove-Item -Path $tempPublishDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+if ($exitCode -ne 0) { exit $exitCode }
 
 Write-Host "`n==========================================================" -ForegroundColor Green
-Write-Host " インストールが正常に完了しました！" -ForegroundColor Green
-Write-Host " - NotifyPosition 2.0: PowerToys Run で 'notify' または 'notify test' と入力" -ForegroundColor White
-Write-Host " - AccessHistory: PowerToys Run で 'his' と入力、またはデスクトップのアイコンをクリック" -ForegroundColor White
+Write-Host " Installation completed successfully." -ForegroundColor Green
+Write-Host " Plugin directory: $pluginsDir" -ForegroundColor White
+Write-Host " NotifyPosition: type 'notify' or 'notify test' in PowerToys Run" -ForegroundColor White
+Write-Host " AccessHistory: type 'his' in PowerToys Run" -ForegroundColor White
 Write-Host "==========================================================" -ForegroundColor Green

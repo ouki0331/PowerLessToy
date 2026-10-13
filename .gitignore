@@ -87,6 +87,8 @@ coverage.cobertura.xml
 publish/
 PublishProfiles/
 *.pubxml.user
+**/ReleaseDir/
+src/Community.PowerToys.Run.Plugin.NotifyPosition/NotifyPosition-*.zip
 
 # ClickOnce
 *.application

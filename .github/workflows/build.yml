@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+    branches: [main, "codex/**"]
+  pull_request:
+
+jobs:
+  build:
+    name: Windows ${{ matrix.platform }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, ARM64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore src/NotifyPositionChanger.sln -p:Platform=${{ matrix.platform }}
+
+      - name: Build
+        run: dotnet build src/NotifyPositionChanger.sln -c Release -p:Platform=${{ matrix.platform }} --no-restore

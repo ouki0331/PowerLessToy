@@ -1,6 +1,6 @@
 # PowerLessToy
 
-**PowerLessToy** は、Windows 10/11 向けの軽量かつ高機能な PowerToys 拡張プラグイン & ユーティリティ集です。全コンポーネントが最新の **.NET 10.0** に対応しています。
+**PowerLessToy** は、Windows 11 向けの PowerToys 拡張プラグイン & ユーティリティ集です。全コンポーネントは **.NET 10.0** を対象としています。
 
 ---
 
@@ -22,9 +22,10 @@ Windows エクスプローラーによるファイル・フォルダの閲覧履
 ---
 
 ## 🛠️ 必要要件
-- Windows 10 (21H2 以降) / Windows 11 (x64 または ARM64)
+- Windows 11 22H2 (build 22621) 以降
+- `x64`（主対象）または `ARM64`（互換ビルド）
 - [Microsoft PowerToys](https://github.com/microsoft/PowerToys)
-- [Microsoft .NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/)
+- [Microsoft .NET 10.0 SDK](https://dotnet.microsoft.com/)（Desktop Runtime を含みます）
 
 ---
 
@@ -35,6 +36,12 @@ Windows エクスプローラーによるファイル・フォルダの閲覧履
 ```powershell
 .\install.ps1
 ```
+
+既定では `x64` をビルドします。ARM64 が必要な場合だけ `-Architecture ARM64` を指定してください。
+
+> [!NOTE]
+> AccessHistory は閲覧したファイル／フォルダーのパスと利用回数を
+> `%LOCALAPPDATA%\PowerLessToy\AccessHistory\history.db` にローカル保存します。
 
 ---
 

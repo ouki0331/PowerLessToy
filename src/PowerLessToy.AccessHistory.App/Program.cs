@@ -30,10 +30,9 @@ public class Program
             return;
         }
 
+        // Access tracking is owned by the PowerToys Run plugin. Keeping the UI
+        // process read-only avoids counting every Explorer visit twice.
         var db = new DatabaseManager();
-        var tracker = new AccessTracker(db);
-        tracker.Start();
-
         var app = new Application();
         var window = new MainWindow(db);
 

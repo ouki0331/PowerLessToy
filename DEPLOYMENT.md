@@ -6,12 +6,12 @@
 
 ## 1. 動作環境・前提要件
 
-- **OS**: Windows 10 (21H2 以降) / Windows 11 (24H2 推奨)
-- **対応アーキテクチャ**: `x64` (Intel/AMD) または `ARM64` (Apple Silicon Mac 仮想環境 / Snapdragon X Elite 等)
+- **OS**: Windows 11 22H2 (build 22621) 以降
+- **対応アーキテクチャ**: `x64` を主対象とし、`ARM64` も互換ビルドとして検証します
 - **必須ランタイム・ツール**:
   1. **Microsoft PowerToys** (最新版推奨)
-  2. **Microsoft .NET 10.0 Desktop Runtime** (`Microsoft.WindowsDesktop.App 10.0`)
-  3. **.NET 10.0 SDK** (ソースコードからビルドする場合のみ)
+  2. **.NET 10.0 SDK**（ソースコードからビルドする場合。Desktop Runtime を含みます）
+  3. ビルド済み成果物だけを実行する場合は **Microsoft .NET 10.0 Desktop Runtime**
 
 ---
 
@@ -39,10 +39,8 @@ cd PowerLessToy
 .\install.ps1
 ```
 
-※ アーキテクチャを明示的に指定する場合:
+既定の主対象は `x64` です。ARM64 互換ビルドが必要な場合のみ明示します:
 ```powershell
-.\install.ps1 -Architecture x64
-# または
 .\install.ps1 -Architecture ARM64
 ```
 
@@ -55,14 +53,14 @@ cd PowerLessToy
 ### プラグインの配置先
 PowerToys は起動時に以下のディレクトリから拡張プラグインを読み込みます：
 ```text
-%LOCALAPPDATA%\PowerToys\RunPlugins\
-(通常: C:\Users\<ユーザー名>\AppData\Local\PowerToys\RunPlugins\)
+%LOCALAPPDATA%\Microsoft\PowerToys\PowerToys Run\Plugins\
+(通常: C:\Users\<ユーザー名>\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\)
 ```
 
 ### ステップ 1: プラグインフォルダの作成
 以下の 2 つのフォルダを作成します：
-- `%LOCALAPPDATA%\PowerToys\RunPlugins\NotifyPosition\`
-- `%LOCALAPPDATA%\PowerToys\RunPlugins\AccessHistory\`
+- `%LOCALAPPDATA%\Microsoft\PowerToys\PowerToys Run\Plugins\NotifyPosition\`
+- `%LOCALAPPDATA%\Microsoft\PowerToys\PowerToys Run\Plugins\AccessHistory\`
 
 ### ステップ 2: ファイルのコピー
 1. **NotifyPosition 2.0**:
@@ -94,17 +92,24 @@ PowerToys は起動時に以下のディレクトリから拡張プラグイン�
 ```powershell
 # 1. AccessHistory.App (WPF 独立アプリ) のパブリッシュ
 cd src\PowerLessToy.AccessHistory.App
-dotnet publish -c Release -p:Platform=ARM64 -r win-arm64 --no-self-contained -o C:\Users\<ユーザー名>\AccessAppPublish
-# (x64 環境の場合は -p:Platform=x64 -r win-x64)
+dotnet publish -c Release -p:Platform=x64 -r win-x64 --no-self-contained -o C:\Users\<ユーザー名>\AccessAppPublish
 
 # 2. AccessHistory プラグインのビルド
 cd ..\Community.PowerToys.Run.Plugin.AccessHistory
-dotnet build -c Release -p:Platform=ARM64
+dotnet build -c Release -p:Platform=x64
 
 # 3. NotifyPosition 2.0 プラグインのビルド
 cd ..\Community.PowerToys.Run.Plugin.NotifyPosition
-dotnet build -c Release -p:Platform=ARM64
+dotnet build -c Release -p:Platform=x64
 ```
+
+ソリューション全体も次のコマンドでビルドできます:
+
+```powershell
+dotnet build src\NotifyPositionChanger.sln -c Release -p:Platform=x64
+```
+
+ARM64 は上記の `x64` を `ARM64` に置き換えて互換性を確認します。
 
 ---
 

@@ -75,7 +75,9 @@ public class AccessTracker
                     Type? shellAppType = Type.GetTypeFromProgID("Shell.Application");
                     if (shellAppType != null)
                     {
-                        dynamic shell = Activator.CreateInstance(shellAppType);
+                        object? shellInstance = Activator.CreateInstance(shellAppType);
+                        if (shellInstance == null) continue;
+                        dynamic shell = shellInstance;
                         dynamic windows = shell.Windows();
                         int count = windows.Count;
                         var currentWindowHwnds = new HashSet<long>();
@@ -175,7 +177,9 @@ public class AccessTracker
                 Type? wscriptType = Type.GetTypeFromProgID("WScript.Shell");
                 if (wscriptType == null) return;
 
-                dynamic wscript = Activator.CreateInstance(wscriptType);
+                object? wscriptInstance = Activator.CreateInstance(wscriptType);
+                if (wscriptInstance == null) return;
+                dynamic wscript = wscriptInstance;
                 dynamic shortcut = wscript.CreateShortcut(e.FullPath);
                 string targetPath = shortcut.TargetPath;
 
