@@ -109,5 +109,6 @@ if (Test-Path $ptExe) {
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " インストールが正常に完了しました！" -ForegroundColor Green
 Write-Host " - NotifyPosition 2.0: PowerToys Run で 'notify' または 'notify test' と入力" -ForegroundColor White
+Write-Host " - VirtualDesktopLoop: 常駐自動起動 (Win + Ctrl + 左右 で仮想デスクトップ端点循環 / 'vdesk' で状態確認)" -ForegroundColor White
 Write-Host " - AccessHistory: PowerToys Run で 'his' と入力、またはデスクトップのアイコンをクリック" -ForegroundColor White
 Write-Host "==========================================================" -ForegroundColor Green

@@ -32,6 +32,7 @@ public class Main : IPlugin, IDisposable
     private bool Disposed { get; set; }
 
     private NotificationMover _mover;
+    private VirtualDesktopLoopManager? _loopManager;
 
     public void Init(PluginInitContext context)
     {
@@ -41,6 +42,9 @@ public class Main : IPlugin, IDisposable
 
         _mover = new NotificationMover();
         _mover.Start();
+
+        _loopManager = new VirtualDesktopLoopManager();
+        _loopManager.Start();
     }
 
     public List<Result> Query(Query query)
@@ -57,6 +61,21 @@ public class Main : IPlugin, IDisposable
                 IcoPath = IconPath,
                 Action = _ => true
             });
+            int vdCount = VirtualDesktopLoopManager.GetDesktopCount();
+            int vdCurrent = VirtualDesktopLoopManager.GetCurrentDesktopIndex() + 1;
+            bool isVdRunning = _loopManager?.IsRunning ?? false;
+            results.Add(new Result
+            {
+                Title = $"仮想デスクトップ循環切替 (Virtual Desktop Loop): {(isVdRunning ? "稼働中 (Active)" : "停止中 (Stopped)")}",
+                SubTitle = $"現在: デスクトップ {vdCurrent} / 全 {vdCount} 画面 | Win + Ctrl + 左右 で端から端へループ",
+                IcoPath = IconPath,
+                Action = _ =>
+                {
+                    if (isVdRunning) _loopManager?.Stop();
+                    else _loopManager?.Start();
+                    return true;
+                }
+            });
             results.Add(new Result
             {
                 Title = "テスト通知を表示 (Preview Approval Notification)",
@@ -65,6 +84,26 @@ public class Main : IPlugin, IDisposable
                 Action = _ =>
                 {
                     ShowTestNotification();
+                    return true;
+                }
+            });
+            return results;
+        }
+
+        if (search.StartsWith("vdesk") || search.StartsWith("loop") || search.StartsWith("desk"))
+        {
+            int vdCount = VirtualDesktopLoopManager.GetDesktopCount();
+            int vdCurrent = VirtualDesktopLoopManager.GetCurrentDesktopIndex() + 1;
+            bool isVdRunning = _loopManager?.IsRunning ?? false;
+            results.Add(new Result
+            {
+                Title = $"仮想デスクトップ循環切替: {(isVdRunning ? "有効 (ON)" : "無効 (OFF)")}",
+                SubTitle = $"現在: デスクトップ {vdCurrent} / 全 {vdCount} 画面 | クリックで切り替え (Win+Ctrl+左右で循環)",
+                IcoPath = IconPath,
+                Action = _ =>
+                {
+                    if (isVdRunning) _loopManager?.Stop();
+                    else _loopManager?.Start();
                     return true;
                 }
             });
@@ -158,6 +197,7 @@ public class Main : IPlugin, IDisposable
         if (Disposed || !disposing) return;
         
         _mover?.Stop();
+        _loopManager?.Dispose();
 
         if (Context?.API != null)
         {
