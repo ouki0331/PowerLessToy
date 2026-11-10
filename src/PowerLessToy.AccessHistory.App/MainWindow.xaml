@@ -158,7 +158,11 @@
         
         <!-- Status Bar -->
         <Border Grid.Row="2" Background="#007ACC" CornerRadius="0,0,15,15" Padding="12,6">
-            <TextBlock x:Name="StatusText" Text="バックグラウンド監視中 • ダブルクリックで開く • 右クリックでメニューを表示 • ESCまたは枠外クリックで閉じる" Foreground="#FFFFFF" FontSize="11"/>
+            <Grid>
+                <TextBlock x:Name="StatusText" Text="バックグラウンド監視中 • ダブルクリックで開く • 右クリックでメニューを表示 • ESCまたは枠外クリックで閉じる" Foreground="#FFFFFF" FontSize="11" VerticalAlignment="Center"/>
+                <Button x:Name="BtnOpenLogs" Content="📁 ログを開く (Open Logs)" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                        Background="#005A9E" Foreground="#FFFFFF" BorderBrush="#004578" BorderThickness="1" Padding="8,2" FontSize="11" Cursor="Hand" Click="BtnOpenLogs_Click"/>
+            </Grid>
         </Border>
     </Grid>
     </Border>

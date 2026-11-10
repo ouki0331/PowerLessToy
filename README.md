@@ -44,5 +44,22 @@ Windows 10/11 の標準仕様（端のデスクトップで移動が止まる制
 
 ---
 
+## 🔍 診断・ログ機能 (Diagnostics & Logs)
+AccessHistory には外部依存なしの専用ファイルロガーが組み込まれており、PowerToys 拡張プロセスおよび独立 WPF アプリの双方から詳細な動作ログが記録されます。
+
+- **ログ保存先フォルダ**:
+  ```text
+  %LOCALAPPDATA%\PowerLessToy\AccessHistory\Logs\
+  (例: C:\Users\<ユーザー名>\AppData\Local\PowerLessToy\AccessHistory\Logs\)
+  ```
+- **ログファイル形式**: `accesshistory-YYYYMMDD-{プロセス名}-{PID}.log`
+  - `accesshistory-20261110-PowerToys.PowerLauncher-1234.log` (プラグイン側)
+  - `accesshistory-20261110-PowerLessToy.AccessHistory.App-5678.log` (WPF アプリ側)
+- **ログの確認方法**:
+  - AccessHistory 画面右下の **「📁 ログを開く」** ボタンをクリックするか、上記フォルダを直接開いて確認できます。
+  - COM (Shell.Application) 呼び出し、SQLite データベース、AssemblyLoadContext、Explorer 監視の全成否が記録されます。
+
+---
+
 ## 📄 ライセンス
 [MIT License](LICENSE)

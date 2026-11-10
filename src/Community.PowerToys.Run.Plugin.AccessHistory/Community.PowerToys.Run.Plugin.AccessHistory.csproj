@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="..\PowerLessToy.AccessHistory.App\DatabaseManager.cs" Link="DatabaseManager.cs" />
     <Compile Include="..\PowerLessToy.AccessHistory.App\AccessTracker.cs" Link="AccessTracker.cs" />
+    <Compile Include="..\PowerLessToy.AccessHistory.App\AccessHistoryLogger.cs" Link="AccessHistoryLogger.cs" />
   </ItemGroup>
 
   <ItemGroup>

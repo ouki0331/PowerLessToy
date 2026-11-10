@@ -106,6 +106,70 @@ if (Test-Path $ptExe) {
     Start-Process $ptExe
 }
 
+# 8. インストール結果の診断情報の出力 (Diagnostics Report)
+Write-Host "`n==========================================================" -ForegroundColor Cyan
+Write-Host " [診断情報] PowerLessToy / AccessHistory インストール結果" -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+
+$logDir = Join-Path $env:LOCALAPPDATA "PowerLessToy\AccessHistory\Logs"
+$accessDll = Join-Path $targetAccess "Community.PowerToys.Run.Plugin.AccessHistory.dll"
+$accessExe = Join-Path $targetAccess "PowerLessToy.AccessHistory.App.exe"
+$sqliteFile = Join-Path $targetAccess "e_sqlite3.dll"
+
+Write-Host "・プラグイン配置先:     $targetAccess" -ForegroundColor White
+Write-Host "・インストールアーキ:   $Architecture" -ForegroundColor White
+
+# PowerToys バージョン
+$ptVersion = "未検出 (PowerToys.exe が見つかりません)"
+if (Test-Path $ptExe) {
+    try {
+        $ptVersionInfo = (Get-Item $ptExe).VersionInfo
+        $ptVersion = "$($ptVersionInfo.ProductVersion) (File: $($ptVersionInfo.FileVersion))"
+    } catch {
+        $ptVersion = "取得失敗 ($($_))"
+    }
+}
+Write-Host "・PowerToys バージョン: $ptVersion" -ForegroundColor White
+
+# .NET ランタイム一覧
+Write-Host "・インストール済み .NET ランタイム:" -ForegroundColor White
+try {
+    $runtimes = dotnet --list-runtimes 2>$null
+    if ($runtimes) {
+        $runtimes | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    } else {
+        Write-Host "    (dotnet コマンドからランタイム一覧を取得できませんでした)" -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host "    (dotnet コマンドの実行に失敗しました)" -ForegroundColor Yellow
+}
+
+# ファイル存在チェック
+Write-Host "・ファイル存在確認:" -ForegroundColor White
+$checkFiles = @(
+    @{ Name = "AccessHistory プラグイン DLL"; Path = $accessDll },
+    @{ Name = "AccessHistory アプリ EXE"; Path = $accessExe },
+    @{ Name = "SQLite Native (e_sqlite3.dll)"; Path = $sqliteFile }
+)
+foreach ($cf in $checkFiles) {
+    $exists = Test-Path $cf.Path
+    $statusColor = if ($exists) { "Green" } else { "Red" }
+    $statusText = if ($exists) { "[OK] 存在します" } else { "[NG] 見つかりません" }
+    Write-Host ("    {0,-30}: {1}" -f $cf.Name, $statusText) -ForegroundColor $statusColor
+}
+
+Write-Host "・AccessHistory ログ保存先:" -ForegroundColor White
+Write-Host "    $logDir" -ForegroundColor Cyan
+
+Write-Host "`n[診断とトラブルシューティングのヒント]:" -ForegroundColor Yellow
+Write-Host "1. AccessHistory パネル (Local / SMB / WSL) に履歴が表示されない場合:" -ForegroundColor White
+Write-Host "   - ログディレクトリ ($logDir) 内の最新ログファイルを確認してください。" -ForegroundColor DarkGray
+Write-Host "   - ログには COM (Shell.Application) 呼び出し、SQLite 読み書き、Explorer 監視の全成否がミリ秒単位で記録されます。" -ForegroundColor DarkGray
+Write-Host "2. 独立アプリを手動起動してテストする場合:" -ForegroundColor White
+Write-Host "   - `"$accessExe`" を直接実行してください。画面右下の『📁 ログを開く』からワンクリックでログを参照できます。" -ForegroundColor DarkGray
+Write-Host "3. PowerToys Run にプラグインが読み込まれない場合:" -ForegroundColor White
+Write-Host "   - PowerToys のメインウィンドウまたはログを確認し、.NET 10.0 Desktop Runtime のロードエラーがないか確認してください。" -ForegroundColor DarkGray
+
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " インストールが正常に完了しました！" -ForegroundColor Green
 Write-Host " - NotifyPosition 2.0: PowerToys Run で 'notify' または 'notify test' と入力" -ForegroundColor White

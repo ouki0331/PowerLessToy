@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,23 +45,43 @@ public partial class MainWindow : Window
 
     private void LoadMainLists()
     {
-        LocalList.ItemsSource = _db.GetTopRecordsForMain(SourceType.Local);
-        SmbList.ItemsSource = _db.GetTopRecordsForMain(SourceType.SMB);
-        WslList.ItemsSource = _db.GetTopRecordsForMain(SourceType.WSL);
+        try
+        {
+            var local = _db.GetTopRecordsForMain(SourceType.Local);
+            var smb = _db.GetTopRecordsForMain(SourceType.SMB);
+            var wsl = _db.GetTopRecordsForMain(SourceType.WSL);
+
+            LocalList.ItemsSource = local;
+            SmbList.ItemsSource = smb;
+            WslList.ItemsSource = wsl;
+
+            AccessHistoryLogger.LogDebug($"MainWindow.LoadMainLists: Local={local.Count}, SMB={smb.Count}, WSL={wsl.Count}");
+        }
+        catch (Exception ex)
+        {
+            AccessHistoryLogger.LogError("Failed to load records in MainWindow.LoadMainLists", ex);
+        }
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var query = SearchBox.Text.Trim();
-        if (string.IsNullOrEmpty(query))
+        try
         {
-            SearchPopup.IsOpen = false;
-            return;
-        }
+            var query = SearchBox.Text.Trim();
+            if (string.IsNullOrEmpty(query))
+            {
+                SearchPopup.IsOpen = false;
+                return;
+            }
 
-        var results = _db.SearchRecords(query, 10);
-        SearchResultsList.ItemsSource = results;
-        SearchPopup.IsOpen = results.Count > 0;
+            var results = _db.SearchRecords(query, 10);
+            SearchResultsList.ItemsSource = results;
+            SearchPopup.IsOpen = results.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            AccessHistoryLogger.LogError("Exception in SearchBox_TextChanged", ex);
+        }
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -131,10 +152,32 @@ public partial class MainWindow : Window
     {
         try
         {
+            AccessHistoryLogger.LogInfo($"User requested opening record: '{record.Path}'");
             Process.Start(new ProcessStartInfo(record.Path) { UseShellExecute = true });
             this.Hide();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            AccessHistoryLogger.LogError($"Failed to open record path: '{record.Path}'", ex);
+        }
+    }
+
+    private void BtnOpenLogs_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string logDir = AccessHistoryLogger.LogsDirectory;
+            if (!Directory.Exists(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+            AccessHistoryLogger.LogInfo($"User clicked 'Open Logs'. Opening folder: '{logDir}'");
+            Process.Start(new ProcessStartInfo(logDir) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AccessHistoryLogger.LogError("Failed to open logs directory from UI button", ex);
+        }
     }
 
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]
@@ -165,14 +208,22 @@ public partial class MainWindow : Window
 
     private void ShowFileProperties(string path)
     {
-        var info = new SHELLEXECUTEINFO
+        try
         {
-            cbSize = Marshal.SizeOf(typeof(SHELLEXECUTEINFO)),
-            lpVerb = "properties",
-            lpFile = path,
-            nShow = SW_SHOW,
-            fMask = SEE_MASK_INVOKEIDLIST
-        };
-        ShellExecuteEx(ref info);
+            var info = new SHELLEXECUTEINFO
+            {
+                cbSize = Marshal.SizeOf(typeof(SHELLEXECUTEINFO)),
+                lpVerb = "properties",
+                lpFile = path,
+                nShow = SW_SHOW,
+                fMask = SEE_MASK_INVOKEIDLIST
+            };
+            bool result = ShellExecuteEx(ref info);
+            AccessHistoryLogger.LogInfo($"ShowFileProperties called for '{path}'. Result={result}");
+        }
+        catch (Exception ex)
+        {
+            AccessHistoryLogger.LogError($"Failed to show file properties for '{path}'", ex);
+        }
     }
 }

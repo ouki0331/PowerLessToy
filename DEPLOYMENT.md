@@ -123,3 +123,21 @@ dotnet build -c Release -p:Platform=ARM64
 ### Q3. 「承認・却下」ボタンがカスタム通知に表示されない
 - 通知元アプリケーションが Windows の「インタラクティブ通知（ボタン付きトースト）」として送信している場合のみ、UIAutomation がボタンを検出し、動的に表示します。
 - 動作テストを行いたい場合は、PowerToys Run で `notify test` と入力してエンターキーを押すと、承認ボタン付きのプレビュー通知が確認できます。
+
+### Q4. AccessHistory の各パネル (Local / SMB / WSL) に履歴が表示されない
+- **原因の切り分け**:
+  1. `%LOCALAPPDATA%\PowerLessToy\AccessHistory\Logs\` を開き、最新のログファイルを確認してください。
+  2. AccessHistory 画面右下の **「📁 ログを開く」** ボタンからも直接ログフォルダを開くことができます。
+  3. ログファイルには以下の情報がミリ秒単位で詳細に出力されます：
+     - `Shell.Application` COM の初期化や Explorer ウィンドウの列挙成否
+     - ウィンドウ HWND、タイトル、取得されたパス（Local / SMB / WSL の自動分類結果）
+     - SQLite データベース（`history.db`）への書き込み（INSERT / UPDATE）成否
+     - Recent（最近使った項目）の `.lnk` ショートカット解析結果
+  4. プラグイン（PowerToys.PowerLauncher）側と独立アプリ（AccessHistory.App）側の双方が自動的にファイルログを記録するため、どちらで問題が発生しているか即座に特定可能です。
+
+### Q5. ログファイルの保存先と命名規則
+- **保存先**: `%LOCALAPPDATA%\PowerLessToy\AccessHistory\Logs\`
+- **ファイル名**: `accesshistory-YYYYMMDD-{プロセス名}-{PID}.log`
+  - 例: `accesshistory-20261110-PowerToys.PowerLauncher-1234.log`
+  - 例: `accesshistory-20261110-PowerLessToy.AccessHistory.App-5678.log`
+- 外部パッケージに依存しないゼロディペンデンシー設計のため、PowerToys のアセンブリ競合を引き起こす心配がありません。
