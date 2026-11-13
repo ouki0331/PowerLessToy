@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>NotifyPositionChanger</RootNamespace>
     <AssemblyName>NotifyPositionChanger</AssemblyName>
+    <Version>0.1.0</Version>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
