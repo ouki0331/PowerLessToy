@@ -83,5 +83,5 @@ foreach ($arch in $architectures) {
     Remove-Item -Path $stageDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host "`nAll packages created in $OutputDir:" -ForegroundColor Green
+Write-Host "`nAll packages created in ${OutputDir}:" -ForegroundColor Green
 Get-ChildItem -Path $OutputDir -Filter "*.zip" | Select-Object Name, Length

@@ -50,24 +50,24 @@ jobs:
           }
 
           Write-Host "Creating/Updating GitHub Release for tag: $tag"
-          $notes = @"
-          # PowerLessToy $tag
-
-          ## 🌟 包含组件 (Components)
-          - **NotifyPosition 2.0**: Windows 原生通知深色卡片置换与「同意/驳回」一键代理。
-          - **AccessHistory**: 零依赖高性能文件日志诊断器、Explorer COM 访问追踪与 Local / SMB / WSL 三栏面板。
-          - **VirtualDesktopLoop**: 虚拟桌面无限循环切换（Win + Ctrl + 左右）。
-
-          ## 📦 架构支持 (Architectures)
-          - Windows 10/11 x64 (Intel / AMD)
-          - Windows 11 ARM64 (Snapdragon X / Apple Silicon 虚拟机)
-
-          ## 🚀 安装方法 (Quick Install)
-          解压 `PowerLessToy-$tag-win-x64.zip`（或 `win-arm64`），右键管理员或普通 PowerShell 运行：
-          ```powershell
-          .\install.ps1
-          ```
-          "@
+          $notes = @(
+            "# PowerLessToy $tag",
+            "",
+            "## 🌟 包含组件 (Components)",
+            "- **NotifyPosition 2.0**: Windows 原生通知深色卡片置换与「同意/驳回」一键代理。",
+            "- **AccessHistory**: 零依赖高性能文件日志诊断器、Explorer COM 访问追踪与 Local / SMB / WSL 三栏面板。",
+            "- **VirtualDesktopLoop**: 虚拟桌面无限循环切换（Win + Ctrl + 左右）。",
+            "",
+            "## 📦 架构支持 (Architectures)",
+            "- Windows 10/11 x64 (Intel / AMD)",
+            "- Windows 11 ARM64 (Snapdragon X / Apple Silicon 虚拟机)",
+            "",
+            "## 🚀 安装方法 (Quick Install)",
+            "解压 `PowerLessToy-$tag-win-x64.zip`（或 `win-arm64`），右键管理员或普通 PowerShell 运行：",
+            "```powershell",
+            ".\install.ps1",
+            "```"
+          ) -join "`n"
 
           # Check if release exists
           $exists = $false
