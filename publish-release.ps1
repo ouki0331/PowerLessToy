@@ -31,20 +31,20 @@ $notes = @"
 ```
 "@
 
-$exists = $false
-try {
-    gh release view $Tag | Out-Null
-    $exists = $true
-} catch {
-    $exists = $false
-}
+# Check if release exists
+& gh release view $Tag 2>$null | Out-Null
+$exists = ($LASTEXITCODE -eq 0)
 
-$zipFiles = Get-ChildItem -Path (Join-Path $DistDir "*.zip") | ForEach-Object { $_.FullName }
+$zipFiles = @(Get-ChildItem -Path (Join-Path $DistDir "*.zip") | ForEach-Object { $_.FullName })
+Write-Host "Found $($zipFiles.Count) release packages to upload."
+
+$notesFile = Join-Path ([System.IO.Path]::GetTempPath()) "release_notes_$Tag.md"
+[System.IO.File]::WriteAllText($notesFile, $notes, [System.Text.Encoding]::UTF8)
 
 if ($exists) {
     Write-Host "Release $Tag already exists, uploading assets..."
-    gh release upload $Tag $zipFiles --clobber
+    & gh release upload $Tag $zipFiles --clobber
 } else {
     Write-Host "Creating release $Tag..."
-    gh release create $Tag $zipFiles --title "PowerLessToy $Tag" --notes $notes
+    & gh release create $Tag $zipFiles --title "PowerLessToy $Tag" --notes-file $notesFile
 }
