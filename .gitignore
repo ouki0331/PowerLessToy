@@ -91,6 +91,7 @@ PublishProfiles/
 # ClickOnce
 *.application
 *.manifest
+!app.manifest
 app.publish/
 
 # Installer / packaging
