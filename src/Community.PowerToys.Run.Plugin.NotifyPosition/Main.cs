@@ -95,9 +95,9 @@ public class Main : IPlugin, IDisposable
                 Title = $"NotifyPosition 2.0: {(isHostAlive ? "稼働中 (Active)" : "停止中 (Stopped)")}",
                 SubTitle = $"モード: {settings.NotificationMode} | 位置: {settings.Position} | 最大スタック: {settings.MaxVisible} 件",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdSettings, out _);
+                    HostController.SendCommand(IpcConstants.CmdSettings, out var _);
                     return true;
                 }
             });
@@ -107,9 +107,9 @@ public class Main : IPlugin, IDisposable
                 Title = "テスト通知 (1件プレビュー)",
                 SubTitle = "有給休暇申請の承認・却下ボタン付きカスタム通知を表示します ('notify test')",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdTest, out _);
+                    HostController.SendCommand(IpcConstants.CmdTest, out var _);
                     return true;
                 }
             });
@@ -119,9 +119,9 @@ public class Main : IPlugin, IDisposable
                 Title = "テスト通知 (5件連続スタック検証)",
                 SubTitle = "5件の通知を連続送信し、垂直スタック・自動補位・上限5件・マウスホバー一時停止を検証します ('notify test 5')",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdTest5, out _);
+                    HostController.SendCommand(IpcConstants.CmdTest5, out var _);
                     return true;
                 }
             });
@@ -131,9 +131,9 @@ public class Main : IPlugin, IDisposable
                 Title = "⚙️ NotifyPosition 設定を開く",
                 SubTitle = "通知権限、動作モード (Replace/Mirror/DND)、位置、アクリル効果を設定します ('notify settings')",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdSettings, out _);
+                    HostController.SendCommand(IpcConstants.CmdSettings, out var _);
                     return true;
                 }
             });
@@ -168,9 +168,9 @@ public class Main : IPlugin, IDisposable
                     Title = "テスト通知 (5件連続スタック検証)",
                     SubTitle = "5件の通知を連続送信し、垂直スタック・自動補位・マウスホバー一時停止を検証します",
                     IcoPath = IconPath,
-                    Action = _ =>
+                    Action = context =>
                     {
-                        HostController.SendCommand(IpcConstants.CmdTest5, out _);
+                        HostController.SendCommand(IpcConstants.CmdTest5, out var _);
                         return true;
                     }
                 });
@@ -182,9 +182,9 @@ public class Main : IPlugin, IDisposable
                     Title = "テスト通知を表示 (1件プレビュー)",
                     SubTitle = "承認・却下ボタン付きのカスタム通知プレビューを表示します",
                     IcoPath = IconPath,
-                    Action = _ =>
+                    Action = context =>
                     {
-                        HostController.SendCommand(IpcConstants.CmdTest, out _);
+                        HostController.SendCommand(IpcConstants.CmdTest, out var _);
                         return true;
                     }
                 });
@@ -194,9 +194,9 @@ public class Main : IPlugin, IDisposable
                     Title = "テスト通知 (5件連続スタック検証)",
                     SubTitle = "5件の通知を連続送信し、垂直スタック・自動補位・マウスホバー一時停止を検証します ('notify test 5')",
                     IcoPath = IconPath,
-                    Action = _ =>
+                    Action = context =>
                     {
-                        HostController.SendCommand(IpcConstants.CmdTest5, out _);
+                        HostController.SendCommand(IpcConstants.CmdTest5, out var _);
                         return true;
                     }
                 });
@@ -212,9 +212,9 @@ public class Main : IPlugin, IDisposable
                 Title = "⚙️ NotifyPosition 設定ウィンドウを開く",
                 SubTitle = "通知取得権限、動作モード、表示位置、アクリル効果を設定します",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdSettings, out _);
+                    HostController.SendCommand(IpcConstants.CmdSettings, out var _);
                     return true;
                 }
             });
@@ -229,9 +229,9 @@ public class Main : IPlugin, IDisposable
                 Title = "Start NotifyPosition Host",
                 SubTitle = "Starts the background notification listener",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdStart, out _);
+                    HostController.SendCommand(IpcConstants.CmdStart, out var _);
                     return true;
                 }
             });
@@ -245,9 +245,9 @@ public class Main : IPlugin, IDisposable
                 Title = "Stop NotifyPosition Host",
                 SubTitle = "Stops notification listening and dismisses active cards",
                 IcoPath = IconPath,
-                Action = _ =>
+                Action = context =>
                 {
-                    HostController.SendCommand(IpcConstants.CmdStop, out _);
+                    HostController.SendCommand(IpcConstants.CmdStop, out var _);
                     return true;
                 }
             });
@@ -265,9 +265,9 @@ public class Main : IPlugin, IDisposable
                     Title = $"Set mode to {mStr}",
                     SubTitle = $"Switch notification mode to {mStr}",
                     IcoPath = IconPath,
-                    Action = _ =>
+                    Action = context =>
                     {
-                        HostController.SendCommand(IpcConstants.CmdSetMode + mStr, out _);
+                        HostController.SendCommand(IpcConstants.CmdSetMode + mStr, out var _);
                         return true;
                     }
                 });
@@ -287,9 +287,9 @@ public class Main : IPlugin, IDisposable
                     Title = $"Set position to {preset}",
                     SubTitle = $"Changes where notification cards appear on active monitor",
                     IcoPath = IconPath,
-                    Action = _ =>
+                    Action = context =>
                     {
-                        HostController.SendCommand(IpcConstants.CmdSetPosition + preset, out _);
+                        HostController.SendCommand(IpcConstants.CmdSetPosition + preset, out var _);
                         return true;
                     }
                 });
