@@ -136,9 +136,9 @@ public class WinRtNotificationListener : INotificationSource
 
     private void OnNotificationChanged(UserNotificationListener sender, UserNotificationChangedEventArgs args)
     {
-        NotifyPositionLogger.Debug($"NotificationChanged event received: ChangeType={args.ChangeType}, Id={args.UserNotificationId}", nameof(WinRtNotificationListener));
+        NotifyPositionLogger.Debug($"NotificationChanged event received: ChangeKind={args.ChangeKind}, Id={args.UserNotificationId}", nameof(WinRtNotificationListener));
 
-        if (args.ChangeType != UserNotificationChangedKind.Added)
+        if (args.ChangeKind != UserNotificationUpdateKind.Added)
         {
             return;
         }
