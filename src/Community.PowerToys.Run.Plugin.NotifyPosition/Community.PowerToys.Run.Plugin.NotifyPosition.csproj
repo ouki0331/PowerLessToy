@@ -5,7 +5,9 @@
     <UseWPF>true</UseWPF>
     <Platforms>x64;ARM64</Platforms>
     <PlatformTarget>$(Platform)</PlatformTarget>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,10 +15,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\PowerLessToy.NotificationHost\Core\NotifyPositionLogger.cs" Link="Core\NotifyPositionLogger.cs" />
+    <Compile Include="..\PowerLessToy.NotificationHost\Core\SettingsModel.cs" Link="Core\SettingsModel.cs" />
+    <Compile Include="..\PowerLessToy.NotificationHost\Core\SettingsManager.cs" Link="Core\SettingsManager.cs" />
+    <Compile Include="..\PowerLessToy.NotificationHost\Core\IpcConstants.cs" Link="Core\IpcConstants.cs" />
+    <Compile Include="..\PowerLessToy.NotificationHost\Core\IpcClient.cs" Link="Core\IpcClient.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="plugin.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Images/*.png">
+    <None Include="Images\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

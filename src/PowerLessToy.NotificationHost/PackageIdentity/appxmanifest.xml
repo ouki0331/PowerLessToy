@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap10 rescap">
+
+  <Identity
+    Name="PowerLessToy.NotificationHost"
+    Publisher="CN=PowerLessToy"
+    Version="0.2.0.0"
+    ProcessorArchitecture="neutral" />
+
+  <Properties>
+    <DisplayName>PowerLessToy Notification Host</DisplayName>
+    <PublisherDisplayName>PowerLessToy</PublisherDisplayName>
+    <Logo>Images\notifyposition.dark.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26200.0" />
+  </Dependencies>
+
+  <Capabilities>
+    <rescap:Capability Name="userNotificationListener" />
+  </Capabilities>
+
+  <Applications>
+    <Application Id="Host"
+      Executable="PowerLessToy.NotificationHost.exe"
+      uap10:AllowExternalContent="true"
+      EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="PowerLessToy Notification Host"
+        Description="PowerLessToy Acrylic Notification Host"
+        Square150x150Logo="Images\notifyposition.dark.png"
+        Square44x44Logo="Images\notifyposition.dark.png"
+        BackgroundColor="transparent">
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+</Package>

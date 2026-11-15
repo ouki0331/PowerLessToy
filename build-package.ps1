@@ -5,7 +5,7 @@
 
 [CmdletBinding()]
 param (
-    [string]$Version = "0.1.0",
+    [string]$Version = "0.2.0",
     [string]$OutputDir = (Join-Path $PSScriptRoot "dist")
 )
 
@@ -19,6 +19,7 @@ if (!(Test-Path $OutputDir)) {
 $srcDir = Join-Path $PSScriptRoot "src"
 $accessAppDir = Join-Path $srcDir "PowerLessToy.AccessHistory.App"
 $accessPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.AccessHistory"
+$notifyHostDir = Join-Path $srcDir "PowerLessToy.NotificationHost"
 $notifyPluginDir = Join-Path $srcDir "Community.PowerToys.Run.Plugin.NotifyPosition"
 
 foreach ($arch in $architectures) {
@@ -50,19 +51,33 @@ foreach ($arch in $architectures) {
         Copy-Item $sqliteNative -Destination $stageAccess -Force
     }
 
-    # 3. Build NotifyPosition Plugin
+    # 3. Publish NotificationHost (into stageNotify)
+    Write-Host "Publishing NotificationHost ($rid)..."
+    dotnet publish $notifyHostDir -c Release -p:Platform=$arch -r $rid --no-self-contained -o $stageNotify
+    if ($LASTEXITCODE -ne 0) { throw "NotificationHost publish failed." }
+
+    # 4. Build NotifyPosition Plugin
     Write-Host "Building NotifyPosition plugin ($arch)..."
     dotnet build $notifyPluginDir -c Release -p:Platform=$arch
     if ($LASTEXITCODE -ne 0) { throw "NotifyPosition build failed." }
     $notifyBinDir = Join-Path $notifyPluginDir "bin\$arch\Release\net10.0-windows10.0.26100.0"
     Copy-Item -Path "$notifyBinDir\*" -Destination $stageNotify -Recurse -Force
 
-    # 4. Copy helper scripts & docs into stage
+    # 5. Copy helper scripts & docs into stage
     Copy-Item (Join-Path $PSScriptRoot "install.ps1") -Destination $stageDir -Force
     Copy-Item (Join-Path $PSScriptRoot "README.md") -Destination $stageDir -Force
     Copy-Item (Join-Path $PSScriptRoot "DEPLOYMENT.md") -Destination $stageDir -Force
 
-    # 5. Create ZIPs
+    # Also put install.ps1, README.md, DEPLOYMENT.md inside individual packages for standalone use
+    Copy-Item (Join-Path $PSScriptRoot "install.ps1") -Destination $stageNotify -Force
+    Copy-Item (Join-Path $PSScriptRoot "README.md") -Destination $stageNotify -Force
+    Copy-Item (Join-Path $PSScriptRoot "DEPLOYMENT.md") -Destination $stageNotify -Force
+
+    Copy-Item (Join-Path $PSScriptRoot "install.ps1") -Destination $stageAccess -Force
+    Copy-Item (Join-Path $PSScriptRoot "README.md") -Destination $stageAccess -Force
+    Copy-Item (Join-Path $PSScriptRoot "DEPLOYMENT.md") -Destination $stageAccess -Force
+
+    # 6. Create ZIPs
     $allZip = Join-Path $OutputDir "PowerLessToy-v$Version-$rid.zip"
     $accessZip = Join-Path $OutputDir "AccessHistory-v$Version-$rid.zip"
     $notifyZip = Join-Path $OutputDir "NotifyPosition-v$Version-$rid.zip"

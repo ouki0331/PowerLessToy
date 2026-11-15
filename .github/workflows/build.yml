@@ -26,3 +26,6 @@ jobs:
 
       - name: Build
         run: dotnet build src/NotifyPositionChanger.sln -c Release -p:Platform=${{ matrix.platform }} --no-restore
+
+      - name: Test
+        run: dotnet test src/PowerLessToy.NotifyPosition.Tests/PowerLessToy.NotifyPosition.Tests.csproj -c Release

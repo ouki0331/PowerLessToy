@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Community.PowerToys.Run.Plu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerLessToy.AccessHistory.App", "PowerLessToy.AccessHistory.App\PowerLessToy.AccessHistory.App.csproj", "{5F668A24-A043-4DF2-AC59-E846EA64D16E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerLessToy.NotificationHost", "PowerLessToy.NotificationHost\PowerLessToy.NotificationHost.csproj", "{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -50,6 +52,14 @@ Global
 		{5F668A24-A043-4DF2-AC59-E846EA64D16E}.Debug|ARM64.Build.0 = Debug|ARM64
 		{5F668A24-A043-4DF2-AC59-E846EA64D16E}.Release|ARM64.ActiveCfg = Release|ARM64
 		{5F668A24-A043-4DF2-AC59-E846EA64D16E}.Release|ARM64.Build.0 = Release|ARM64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Debug|x64.ActiveCfg = Debug|x64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Debug|x64.Build.0 = Debug|x64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Release|x64.ActiveCfg = Release|x64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Release|x64.Build.0 = Release|x64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Debug|ARM64.Build.0 = Debug|ARM64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Release|ARM64.ActiveCfg = Release|ARM64
+		{7A4E81C2-33E1-4D3B-98A1-4E87C218B110}.Release|ARM64.Build.0 = Release|ARM64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,7 +4,7 @@
 
 [CmdletBinding()]
 param (
-    [string]$Tag = "v0.1.0",
+    [string]$Tag = "v0.2.0",
     [string]$DistDir = (Join-Path $PSScriptRoot "dist")
 )
 
@@ -15,12 +15,25 @@ Write-Host "Creating/Updating GitHub Release for tag: $Tag"
 $notes = @"
 # PowerLessToy $Tag
 
-PowerLessToy は、Windows 10/11 向けの軽量かつ高機能な PowerToys 拡張プラグイン & ユーティリティ集です（.NET 10.0 対応）。
+PowerLessToy は、Windows 10/11 向けの軽量かつ高機能な PowerToys 拡張プラグイン & ユーティリティ集です（.NET 10.0 / Windows 11 24H2 対応）。
 
-## 🌟 主な収録モジュール
-- **NotifyPosition 2.0**: Windows 標準通知をモダンな深色カード通知へリプレイス。「承認・却下 (Approve / Reject)」アクションの完全プロキシ実行に対応。
-- **AccessHistory**: 外部依存ゼロの専用ファイルロガーを内蔵し、エクスプローラーのアクセス履歴（Local / SMB / WSL）を自動記録・分類・あいまい検索。
-- **VirtualDesktopLoop**: 仮想デスクトップの端点制限を解消し、`Win + Ctrl + 左右` でのシームレスな無限ループ切替を実現。
+## 🌟 主な収録モジュール & 今回のアップデート内容 (v0.2.0)
+
+### 1. 🔔 NotifyPosition 2.0 (大型リファクタリング)
+- **独立プロセス化 (NotificationHost)**: PowerToys Run プロセスから通知監視・WPF 描画を分離し、独立した単一インスタンス ``PowerLessToy.NotificationHost.exe`` に移管。PowerToys 本体の安定性を向上。
+- **macOS風アクリルデザイン**: Windows 11 の DWM System Backdrop (Acrylic / Mica) を適用した半透明フロストガラスカード通知。
+- **垂直スタック & 自動補位**: 最大5件までの垂直スタック表示、超過分のFIFOキューイング、カード消去時のスムーズな上方向補位アニメーション。
+- **中央上部デフォルト配置**: 画面中央上部 (TopCenter) をデフォルトとし、アクティブモニターの WorkArea / DPI に連動。
+- **UserNotificationListener 正式統合**: Windows WinRT 公式通知リスナーを採用し、3つの動作モード（Replace / Mirror / DoNotDisturb）に対応。
+- **マウスホバータイマー一時停止**: 通知カードにマウスカーソルを合わせると自動消去カウントダウンが一時停止。
+- **ゼロ依存ログ診断機能**: ``%LOCALAPPDATA%\PowerLessToy\NotifyPosition\Logs`` に詳細ログを出力。
+
+### 2. 📁 AccessHistory
+- エクスプローラーのアクセス履歴（Local / SMB / WSL）を自動記録・分類・あいまい検索。
+- 外部依存ゼロの専用ファイルロガーを内蔵し、履歴管理を継続。
+
+### 3. 🔄 VirtualDesktopLoop
+- 仮想デスクトップの端点制限を解消し、``Win + Ctrl + 左右`` でのシームレスな無限ループ切替を実現。
 
 ## 📦 対応アーキテクチャ
 - **Windows 10 / 11 x64** (Intel / AMD)

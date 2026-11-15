@@ -1,0 +1,148 @@
+<Window x:Class="PowerLessToy.NotifyPosition.UI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NotifyPosition 設定 (Settings)"
+        Width="540" Height="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#18181A" Foreground="#FFFFFF"
+        WindowStyle="SingleBorderWindow" ResizeMode="NoResize">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#0A84FF"/>
+            <Setter Property="Margin" Value="0,14,0,6"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#2C2C2E"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Margin" Value="0,2,0,8"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,4,0,8"/>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2C2C2E"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" BorderBrush="#33FFFFFF" BorderThickness="0,0,0,1" Padding="0,0,0,12" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="NotifyPosition 2.0 設定" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="macOSスタイルのモダンなアクリル通知マネージャー" FontSize="12" Foreground="#8E8E93" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource ActionButton}" Content="📁 ログを開く" Click="OpenLogs_Click" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,10,0">
+
+                <!-- Permission status -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="1. Windows 通知取得権限 (UserNotificationListener)" Margin="0,4,0,6"/>
+                <Border Background="#242426" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="TxtPermissionStatus" Text="権限ステータス: 確認中..." FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock Text="※未許可の場合、設定アプリで「通知」へのアクセスを許可してください。" FontSize="11" Foreground="#8E8E93" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource ActionButton}" Content="権限設定を開く" Click="RequestPermission_Click" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Notification Mode -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="2. 通知動作モード (Notification Mode)"/>
+                <ComboBox x:Name="CmbMode" SelectionChanged="CmbMode_SelectionChanged">
+                    <ComboBoxItem Content="Replace モード (推奨: 原生通知を削除しカスタム通知に置換)"/>
+                    <ComboBoxItem Content="Mirror モード (テスト用: 原生通知とカスタム通知を両方表示)"/>
+                    <ComboBoxItem Content="DoNotDisturb モード (集中モード併用: 原生トーストなしで完全置換)"/>
+                </ComboBox>
+                <TextBlock x:Name="TxtModeDesc" Text="モードの説明" FontSize="11" Foreground="#A1A1A6" TextWrapping="Wrap" Margin="0,-4,0,8"/>
+
+                <!-- Display Position -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="3. 表示位置 (Position)"/>
+                <ComboBox x:Name="CmbPosition">
+                    <ComboBoxItem Content="TopCenter (画面中央上部 - デフォルト)"/>
+                    <ComboBoxItem Content="TopLeft (画面左上)"/>
+                    <ComboBoxItem Content="TopRight (画面右上)"/>
+                    <ComboBoxItem Content="BottomCenter (画面中央下部)"/>
+                    <ComboBoxItem Content="BottomLeft (画面左下)"/>
+                    <ComboBoxItem Content="BottomRight (画面右下)"/>
+                </ComboBox>
+
+                <!-- Options -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="4. 表示・スタック・外観設定"/>
+                <Grid Margin="0,4,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="最大同時表示数 (Max Visible):" FontSize="12"/>
+                        <TextBox x:Name="TxtMaxVisible" Text="5" Background="#2C2C2E" Foreground="#FFFFFF" Padding="6,3" Margin="0,3,0,8"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="自動非表示秒数 (Seconds):" FontSize="12"/>
+                        <TextBox x:Name="TxtDismissSeconds" Text="8" Background="#2C2C2E" Foreground="#FFFFFF" Padding="6,3" Margin="0,3,0,8"/>
+                    </StackPanel>
+                </Grid>
+
+                <CheckBox x:Name="ChkAcrylic" Content="Windows 11 アクリル効果 (Acrylic Backdrop) を有効にする" IsChecked="True"/>
+                <CheckBox x:Name="ChkAggregation" Content="同一アプリの短時間連続通知を自動で集約する" IsChecked="False"/>
+
+                <!-- Test section -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="5. 動作テスト"/>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                    <Button Style="{StaticResource ActionButton}" Content="🔔 テスト通知 (1件)" Click="TestOne_Click"/>
+                    <Button Style="{StaticResource ActionButton}" Content="📚 テスト通知 (5件スタック)" Click="TestFive_Click"/>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" BorderBrush="#33FFFFFF" BorderThickness="0,1,0,0" Padding="0,12,0,0" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource ActionButton}" Content="キャンセル" Click="Cancel_Click"/>
+                <Button Content="設定を保存 (Save)" Background="#0A84FF" Foreground="#FFFFFF" FontWeight="Bold" Padding="16,6" Margin="4,0,0,0" Cursor="Hand" Click="Save_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
